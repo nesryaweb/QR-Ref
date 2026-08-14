@@ -18,8 +18,8 @@ model Image {
   id           Int      @id @default(autoincrement())
   referenceId  String   @unique
   originalName String
-  storageKey   String   @unique
   mimeType     String
   size         Int
+  data         Bytes
   createdAt    DateTime @default(now())
 }

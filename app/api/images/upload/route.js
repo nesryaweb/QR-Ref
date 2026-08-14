@@ -1,10 +1,13 @@
-import { generateReferenceId } from "@/lib/reference";
-import { uploadImage } from "@/lib/storage";
 import { prisma } from "@/lib/db";
+import { generateReferenceId } from "@/lib/reference";
 
-const MAX_FILE_SIZE = 10 * 1024 * 1024;
+const MAX_FILE_SIZE = 5 * 1024 * 1024;
 
-const ALLOWED_TYPES = ["image/png", "image/jpeg", "image/webp"];
+const ALLOWED_TYPES = [
+  "image/png",
+  "image/jpeg",
+  "image/webp",
+];
 
 export async function POST(request) {
   try {
@@ -14,7 +17,7 @@ export async function POST(request) {
     if (!file || typeof file === "string") {
       return Response.json(
         { error: "Image file is required." },
-        { status: 400 },
+        { status: 400 }
       );
     }
 
@@ -23,16 +26,16 @@ export async function POST(request) {
         {
           error: "Only PNG, JPEG, and WEBP images are allowed.",
         },
-        { status: 400 },
+        { status: 400 }
       );
     }
 
     if (file.size > MAX_FILE_SIZE) {
       return Response.json(
         {
-          error: "Image must be smaller than 10MB.",
+          error: "Image must be smaller than 5MB.",
         },
-        { status: 400 },
+        { status: 400 }
       );
     }
 
@@ -49,16 +52,27 @@ export async function POST(request) {
       });
     } while (existingImage);
 
-    const extension = getExtension(file.type);
+    const imageBuffer = Buffer.from(await file.arrayBuffer());
 
-    const storageKey = `${referenceId}.${extension}`;
-
-    await uploadImage(file, storageKey);
+    const image = await prisma.image.create({
+      data: {
+        referenceId,
+        originalName: file.name,
+        mimeType: file.type,
+        size: file.size,
+        data: imageBuffer,
+      },
+    });
 
     return Response.json({
       success: true,
-      referenceId,
-      storageKey,
+      image: {
+        id: image.id,
+        referenceId: image.referenceId,
+        originalName: image.originalName,
+        mimeType: image.mimeType,
+        size: image.size,
+      },
     });
   } catch (error) {
     console.error("Image upload failed:", error);
@@ -67,17 +81,7 @@ export async function POST(request) {
       {
         error: "Failed to upload image.",
       },
-      { status: 500 },
+      { status: 500 }
     );
   }
-}
-
-function getExtension(mimeType) {
-  const extensions = {
-    "image/png": "png",
-    "image/jpeg": "jpg",
-    "image/webp": "webp",
-  };
-
-  return extensions[mimeType];
 }
