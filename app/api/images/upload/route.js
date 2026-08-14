@@ -1,15 +1,17 @@
 import { prisma } from "@/lib/db";
 import { generateReferenceId } from "@/lib/reference";
-
+import { getServerSession } from "next-auth";
+import { authOptions } from "../../../../pages/api/auth/[...nextauth]";
 const MAX_FILE_SIZE = 5 * 1024 * 1024;
 
-const ALLOWED_TYPES = [
-  "image/png",
-  "image/jpeg",
-  "image/webp",
-];
+const ALLOWED_TYPES = ["image/png", "image/jpeg", "image/webp"];
 
 export async function POST(request) {
+  const session = await getServerSession(authOptions);
+
+  if (!session) {
+    return Response.json({ error: "Unauthorized" }, { status: 401 });
+  }
   try {
     const formData = await request.formData();
     const file = formData.get("file");
@@ -17,7 +19,7 @@ export async function POST(request) {
     if (!file || typeof file === "string") {
       return Response.json(
         { error: "Image file is required." },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -26,7 +28,7 @@ export async function POST(request) {
         {
           error: "Only PNG, JPEG, and WEBP images are allowed.",
         },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -35,7 +37,7 @@ export async function POST(request) {
         {
           error: "Image must be smaller than 5MB.",
         },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -81,7 +83,7 @@ export async function POST(request) {
       {
         error: "Failed to upload image.",
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
