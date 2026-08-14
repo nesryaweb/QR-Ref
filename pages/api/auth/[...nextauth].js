@@ -1,7 +1,7 @@
 import NextAuth from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 
-export default NextAuth({
+export const authOptions = {
   providers: [
     CredentialsProvider({
       name: "Admin Login",
@@ -42,4 +42,6 @@ export default NextAuth({
   pages: {
     signIn: "/admin/login",
   },
-});
+};
+
+export default NextAuth(authOptions);
