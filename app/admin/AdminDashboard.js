@@ -119,26 +119,26 @@ export default function AdminPage() {
     <main className="min-h-screen bg-gray-50 p-8">
       <div className="mx-auto max-w-5xl space-y-10">
         <header className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-  <div>
-    <h1 className="text-3xl font-bold">QR Ref</h1>
+          <div>
+            <h1 className="text-3xl font-bold">QR Ref</h1>
 
-    <p className="mt-2 text-gray-600">
-      Manage your image references and QR codes.
-    </p>
-  </div>
+            <p className="mt-2 text-gray-600">
+              Manage your image references and QR codes.
+            </p>
+          </div>
 
-  <button
-    type="button"
-    onClick={() =>
-      signOut({
-        callbackUrl: "/admin/login",
-      })
-    }
-    className="rounded-md border px-4 py-2 text-sm font-medium hover:bg-gray-100"
-  >
-    Sign out
-  </button>
-</header>
+          <button
+            type="button"
+            onClick={() =>
+              signOut({
+                callbackUrl: "/admin/login",
+              })
+            }
+            className="rounded-md border px-4 py-2 text-sm font-medium hover:bg-gray-100"
+          >
+            Sign out
+          </button>
+        </header>
         <section className="rounded-xl border bg-white p-6 shadow-sm">
           <h2 className="text-xl font-semibold">Upload Image</h2>
 
@@ -183,7 +183,7 @@ export default function AdminPage() {
 
             <button
               type="submit"
-              disabled={!file || loading}
+              disabled={loading}
               className="w-full rounded-md bg-black px-4 py-3 font-medium text-white disabled:cursor-not-allowed disabled:opacity-50"
             >
               {loading ? "Uploading..." : "Upload Image"}
@@ -206,7 +206,7 @@ export default function AdminPage() {
 function ResultCard({ image }) {
   const qrUrl = `/api/images/${image.referenceId}/qr`;
 
-  const imageUrl = `/ref/${image.referenceId}`;
+  const imageUrl = `/ref/${image.referenceId}.${getExtension(image.mimeType)}`;
 
   return (
     <section className="rounded-xl border bg-white p-6 shadow-sm">
