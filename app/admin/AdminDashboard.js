@@ -134,7 +134,7 @@ export default function AdminPage() {
                 callbackUrl: "/admin/login",
               })
             }
-            className="rounded-md border px-4 py-2 text-sm font-medium hover:bg-gray-100"
+            className="rounded-md border cursor-pointer px-4 py-2 text-sm font-medium hover:bg-gray-100"
           >
             Sign out
           </button>
@@ -142,7 +142,10 @@ export default function AdminPage() {
         <section className="rounded-xl border bg-white p-6 shadow-sm">
           <h2 className="text-xl font-semibold">Upload Image</h2>
 
-          <form onSubmit={handleUpload} className="mt-6 space-y-6">
+          <form
+            onSubmit={handleUpload}
+            className="mt-6 space-y-6 flex items-center gap-5 flex-col sm:flex-row"
+          >
             <div>
               <label htmlFor="image" className="mb-2 block text-sm font-medium">
                 Image
@@ -155,7 +158,16 @@ export default function AdminPage() {
                 onChange={(event) => {
                   setFile(event.target.files?.[0] || null);
                 }}
-                className="block w-full rounded-md border p-3"
+                className="block w-full rounded-md border p-3  file:mr-4
+    file:rounded-md
+    file:border-0
+    file:bg-gray-200
+    file:px-4
+    file:py-2
+    file:text-sm
+    file:font-medium
+    cursor-pointer
+    hover:file:bg-gray-300"
               />
             </div>
 
@@ -184,7 +196,7 @@ export default function AdminPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full rounded-md bg-black px-4 py-3 font-medium text-white disabled:cursor-not-allowed disabled:opacity-50"
+              className="h-max rounded-md bg-black hover:bg-stone-900 px-4 py-3 font-medium text-white cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
             >
               {loading ? "Uploading..." : "Upload Image"}
             </button>
@@ -291,14 +303,16 @@ function ImageList({ images, loading, onDelete }) {
 }
 
 function ImageRow({ image, onDelete }) {
-  const imageUrl = `/ref/${image.referenceId}.${getExtension(image.mimeType)}`;
+  const imagePageUrl = `/ref/${image.referenceId}.${getExtension(image.mimeType)}`;
 
+  const imageFileUrl = `/api/images/${image.referenceId}.${getExtension(
+    image.mimeType,
+  )}`;
   const qrUrl = `/api/images/${image.referenceId}/qr`;
-
   return (
     <div className="flex flex-col gap-4 rounded-lg border p-4 md:flex-row md:items-center">
       <img
-        src={imageUrl}
+        src={imageFileUrl}
         alt={image.originalName}
         className="h-24 w-24 rounded-md object-cover"
       />
@@ -317,10 +331,10 @@ function ImageRow({ image, onDelete }) {
 
       <div className="flex flex-wrap gap-2">
         <a
-          href={imageUrl}
+          href={imagePageUrl}
           target="_blank"
           rel="noopener noreferrer"
-          className="rounded-md border px-3 py-2 text-sm"
+          className="rounded-md border hover:bg-gray-100 px-3 py-2 text-sm"
         >
           View
         </a>
@@ -329,7 +343,7 @@ function ImageRow({ image, onDelete }) {
           href={qrUrl}
           target="_blank"
           rel="noopener noreferrer"
-          className="rounded-md border px-3 py-2 text-sm"
+          className="rounded-md border px-3  hover:bg-gray-100 py-2 text-sm"
         >
           QR
         </a>
@@ -337,7 +351,7 @@ function ImageRow({ image, onDelete }) {
         <button
           type="button"
           onClick={() => onDelete(image.referenceId)}
-          className="rounded-md bg-red-600 px-3 py-2 text-sm text-white"
+          className="rounded-md bg-red-600 hover:bg-red-500 px-3 py-2 text-sm cursor-pointer text-white"
         >
           Delete
         </button>
