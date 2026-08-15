@@ -1,0 +1,19 @@
+[33m2c7fea0[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmaster[m[33m)[m feat: generate QR code after image upload
+[33m45cb329[m feat: add internal QR code generation
+[33mfac3831[m feat: add public image reference URL
+[33mbbfcada[m feat: add protected admin image upload workflow
+[33ma4f83a8[m feat: add QR code preview
+[33m3fae929[m feat: protect upload test page
+[33m28438bb[m feat: protect image upload API
+[33md59a2e1[m feat: protect admin dashboard
+[33m2bba559[m feat: add admin login page
+[33mf12939f[m feat: configure admin authentication
+[33mcf40e05[m feat: add image management and deletion
+[33m562244d[m feat: add admin image upload interface
+[33m0e082b8[m feat: add dynamic QR code generation
+[33m34610f8[m feat: add public image reference route
+[33m3fcdd4d[m test: add image upload test page
+[33m1ade1bb[m feat: add image upload backend
+[33m97a5438[m feat: add storage abstraction and storage key
+[33m555ac40[m feat: initialize QR Ref backend foundation
+[33m9d291a0[m Initial commit from Create Next App

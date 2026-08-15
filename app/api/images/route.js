@@ -1,6 +1,13 @@
 import { prisma } from "@/lib/db";
+import { authOptions } from "@/pages/api/auth/[...nextauth]";
+import { getServerSession } from "next-auth";
 
 export async function GET() {
+  const session = await getServerSession(authOptions);
+
+  if (!session) {
+    return Response.json({ error: "Unauthorized" }, { status: 401 });
+  }
   try {
     const images = await prisma.image.findMany({
       select: {
@@ -28,7 +35,7 @@ export async function GET() {
       },
       {
         status: 500,
-      }
+      },
     );
   }
 }
@@ -46,7 +53,7 @@ export async function DELETE(request) {
         },
         {
           status: 400,
-        }
+        },
       );
     }
 
@@ -63,7 +70,7 @@ export async function DELETE(request) {
         },
         {
           status: 404,
-        }
+        },
       );
     }
 
@@ -86,7 +93,7 @@ export async function DELETE(request) {
       },
       {
         status: 500,
-      }
+      },
     );
   }
 }

@@ -4,11 +4,18 @@ import { notFound } from "next/navigation";
 export default async function ImagePage({ params }) {
   const { reference } = await params;
 
+  const referenceId = reference.replace(/\.(png|jpe?g|webp)$/i, "");
+
+  console.log("Reference from URL:", reference);
+  console.log("Reference ID for database:", referenceId);
+
   const image = await prisma.image.findUnique({
     where: {
-      referenceId: reference,
+      referenceId,
     },
   });
+
+  console.log("Image found:", !!image);
 
   if (!image) {
     notFound();
@@ -19,7 +26,7 @@ export default async function ImagePage({ params }) {
   ).toString("base64")}`;
 
   return (
-    <main className="min-h-screen bg-black flex items-center justify-center p-4">
+    <main className="flex min-h-screen items-center justify-center bg-black p-4">
       <img
         src={imageSrc}
         alt={image.originalName}
