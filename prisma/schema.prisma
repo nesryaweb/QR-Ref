@@ -15,9 +15,11 @@ datasource db {
 
 
 
+
 model Image {
   id           Int      @id @default(autoincrement())
   referenceId  String   @unique
+  studentName  String
   originalName String
   mimeType     String
   size         Int
