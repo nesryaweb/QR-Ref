@@ -7,6 +7,7 @@ import {
   createEmptyGrade,
   createEmptySubject,
 } from "@/lib/transcript";
+import TranscriptPreview from "./components/TranscriptPreview";
 import GradeEditor from "./components/GradeEditor";
 export default function AdminPage() {
   const [transcript, setTranscript] = useState(createEmptyTranscript());
@@ -16,6 +17,7 @@ export default function AdminPage() {
   const [error, setError] = useState("");
   const [images, setImages] = useState([]);
   const [loadingImages, setLoadingImages] = useState(true);
+
   const [loadingMessage, setLoadingMessage] = useState("");
   useEffect(() => {
     loadImages();
@@ -336,7 +338,9 @@ export default function AdminPage() {
                 type="file"
                 accept="image/png,image/jpeg,image/webp"
                 onChange={(event) => {
-                  setPhoto(event.target.files?.[0] || null);
+                  const selectedPhoto = event.target.files?.[0] || null;
+                  setPhoto(selectedPhoto);
+                  updateTranscript("photo", selectedPhoto);
                 }}
                 className="block w-full rounded-md border p-3 file:mr-4 file:rounded-md file:border-0 file:bg-gray-200 file:px-4 file:py-2 file:text-sm file:font-medium cursor-pointer hover:file:bg-gray-300"
               />
@@ -406,85 +410,86 @@ export default function AdminPage() {
               )}
             </section>
             {/* Additional Transcript Information */}
-<section className="space-y-6">
-  <div>
-    <h2 className="text-xl font-semibold">
-      Additional Information
-    </h2>
+            <section className="space-y-6">
+              <div>
+                <h2 className="text-xl font-semibold">
+                  Additional Information
+                </h2>
 
-    <p className="mt-1 text-sm text-gray-500">
-      Enter the student's conduct, attendance, and completed grade.
-    </p>
-  </div>
+                <p className="mt-1 text-sm text-gray-500">
+                  Enter the student's conduct, attendance, and completed grade.
+                </p>
+              </div>
 
-  <div className="grid gap-5 md:grid-cols-3">
-    {/* Conduct / Work Ethics */}
-    <div>
-      <label
-        htmlFor="conduct"
-        className="mb-2 block text-sm font-medium"
-      >
-        Conduct / Work Ethics
-      </label>
+              <div className="grid gap-5 md:grid-cols-3">
+                {/* Conduct / Work Ethics */}
+                <div>
+                  <label
+                    htmlFor="conduct"
+                    className="mb-2 block text-sm font-medium"
+                  >
+                    Conduct / Work Ethics
+                  </label>
 
-      <input
-        id="conduct"
-        type="text"
-        value={transcript.conduct}
-        onChange={(event) =>
-          updateTranscript("conduct", event.target.value)
-        }
-        placeholder="e.g. Excellent"
-        className="w-full rounded-md border p-3 outline-none focus:ring-2 focus:ring-black"
-      />
-    </div>
+                  <input
+                    id="conduct"
+                    type="text"
+                    value={transcript.conduct}
+                    onChange={(event) =>
+                      updateTranscript("conduct", event.target.value)
+                    }
+                    placeholder="e.g. Excellent"
+                    className="w-full rounded-md border p-3 outline-none focus:ring-2 focus:ring-black"
+                  />
+                </div>
 
-    {/* Absence */}
-    <div>
-      <label
-        htmlFor="absence"
-        className="mb-2 block text-sm font-medium"
-      >
-        Absence
-      </label>
+                {/* Absence */}
+                <div>
+                  <label
+                    htmlFor="absence"
+                    className="mb-2 block text-sm font-medium"
+                  >
+                    Absence
+                  </label>
 
-      <input
-        id="absence"
-        type="number"
-        min="0"
-        value={transcript.absence}
-        onChange={(event) =>
-          updateTranscript("absence", event.target.value)
-        }
-        placeholder="Number of absences"
-        className="w-full rounded-md border p-3 outline-none focus:ring-2 focus:ring-black"
-      />
-    </div>
+                  <input
+                    id="absence"
+                    type="number"
+                    min="0"
+                    value={transcript.absence}
+                    onChange={(event) =>
+                      updateTranscript("absence", event.target.value)
+                    }
+                    placeholder="Number of absences"
+                    className="w-full rounded-md border p-3 outline-none focus:ring-2 focus:ring-black"
+                  />
+                </div>
 
-    {/* Completed Grade */}
-    <div>
-      <label
-        htmlFor="completedGrade"
-        className="mb-2 block text-sm font-medium"
-      >
-        Completed Grade
-      </label>
+                {/* Completed Grade */}
+                <div>
+                  <label
+                    htmlFor="completedGrade"
+                    className="mb-2 block text-sm font-medium"
+                  >
+                    Completed Grade
+                  </label>
 
-      <input
-        id="completedGrade"
-        type="text"
-        value={transcript.completedGrade}
-        onChange={(event) =>
-          updateTranscript("completedGrade", event.target.value)
-        }
-        placeholder="e.g. Grade 12"
-        className="w-full rounded-md border p-3 outline-none focus:ring-2 focus:ring-black"
-      />
-    </div>
-  </div>
-</section>
+                  <input
+                    id="completedGrade"
+                    type="text"
+                    value={transcript.completedGrade}
+                    onChange={(event) =>
+                      updateTranscript("completedGrade", event.target.value)
+                    }
+                    placeholder="e.g. Grade 12"
+                    className="w-full rounded-md border p-3 outline-none focus:ring-2 focus:ring-black"
+                  />
+                </div>
+              </div>
+            </section>
           </div>
         </section>
+        <TranscriptPreview transcript={transcript} />
 
         {result && <ResultCard image={result} />}
 
