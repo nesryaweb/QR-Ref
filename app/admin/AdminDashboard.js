@@ -177,7 +177,7 @@ export default function AdminPage() {
                 <input
                   id="image"
                   type="file"
-                  accept="image/png,image/jpeg,image/webp"
+                  accept=".docx,image/png,image/jpeg,image/webp"
                   onChange={(event) => {
                     setFile(event.target.files?.[0] || null);
                   }}
