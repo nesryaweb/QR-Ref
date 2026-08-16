@@ -1,9 +1,6 @@
 "use client";
 
-import {
-  createEmptySubject,
-  calculateAverage,
-} from "@/lib/transcript";
+import { createEmptySubject, calculateAverage, calculateGradeTotals } from "@/lib/transcript";
 
 export default function GradeEditor({
   grade,
@@ -12,25 +9,20 @@ export default function GradeEditor({
   onAddSubject,
   onUpdateSubject,
 }) {
+  const totals = calculateGradeTotals(grade);
+
   return (
     <section className="rounded-xl border bg-white p-6 shadow-sm">
       <div className="grid gap-5 md:grid-cols-2">
-
         {/* Grade */}
         <div>
-          <label className="mb-2 block text-sm font-medium">
-            Grade
-          </label>
+          <label className="mb-2 block text-sm font-medium">Grade</label>
 
           <input
             type="text"
             value={grade.gradeName}
             onChange={(event) =>
-              onUpdateGrade(
-                gradeIndex,
-                "gradeName",
-                event.target.value,
-              )
+              onUpdateGrade(gradeIndex, "gradeName", event.target.value)
             }
             placeholder="e.g. Grade 9"
             className="w-full rounded-md border p-3 outline-none focus:ring-2 focus:ring-black"
@@ -47,26 +39,18 @@ export default function GradeEditor({
             type="text"
             value={grade.academicYear}
             onChange={(event) =>
-              onUpdateGrade(
-                gradeIndex,
-                "academicYear",
-                event.target.value,
-              )
+              onUpdateGrade(gradeIndex, "academicYear", event.target.value)
             }
             placeholder="e.g. 2024/25"
             className="w-full rounded-md border p-3 outline-none focus:ring-2 focus:ring-black"
           />
         </div>
-
       </div>
 
       {/* Subjects */}
       <div className="mt-8">
-
         <div className="mb-3">
-          <h3 className="font-semibold">
-            Subjects
-          </h3>
+          <h3 className="font-semibold">Subjects</h3>
 
           <p className="text-sm text-gray-500">
             Add the subjects and enter the semester marks.
@@ -76,12 +60,9 @@ export default function GradeEditor({
         {grade.subjects.length > 0 && (
           <div className="overflow-x-auto">
             <table className="w-full min-w-[700px] border-collapse">
-
               <thead>
                 <tr className="border-b bg-gray-50">
-                  <th className="p-3 text-left text-sm font-medium">
-                    Subject
-                  </th>
+                  <th className="p-3 text-left text-sm font-medium">Subject</th>
 
                   <th className="p-3 text-left text-sm font-medium">
                     1st Semester
@@ -91,9 +72,7 @@ export default function GradeEditor({
                     2nd Semester
                   </th>
 
-                  <th className="p-3 text-left text-sm font-medium">
-                    Average
-                  </th>
+                  <th className="p-3 text-left text-sm font-medium">Average</th>
                 </tr>
               </thead>
 
@@ -105,10 +84,7 @@ export default function GradeEditor({
                   );
 
                   return (
-                    <tr
-                      key={subjectIndex}
-                      className="border-b"
-                    >
+                    <tr key={subjectIndex} className="border-b">
                       {/* Subject */}
                       <td className="p-3">
                         <input
@@ -177,7 +153,41 @@ export default function GradeEditor({
                   );
                 })}
               </tbody>
+              <tbody>
+                <tr className="border-t-2 border-gray-800">
+                  <td className="p-3 font-semibold">Total</td>
 
+                  <td className="p-3 font-semibold">
+                    {totals.firstSemesterTotal}
+                  </td>
+
+                  <td className="p-3 font-semibold">
+                    {totals.secondSemesterTotal}
+                  </td>
+
+                  <td className="p-3">-</td>
+                </tr>
+
+                <tr>
+                  <td className="p-3 font-semibold">Average</td>
+
+                  <td className="p-3 font-semibold">
+                    {totals.firstSemesterAverage === ""
+                      ? "-"
+                      : totals.firstSemesterAverage}
+                  </td>
+
+                  <td className="p-3 font-semibold">
+                    {totals.secondSemesterAverage === ""
+                      ? "-"
+                      : totals.secondSemesterAverage}
+                  </td>
+
+                  <td className="p-3 font-semibold">
+                    {totals.overallAverage === "" ? "-" : totals.overallAverage}
+                  </td>
+                </tr>
+              </tbody>
             </table>
           </div>
         )}
@@ -189,7 +199,6 @@ export default function GradeEditor({
         >
           + Add Subject
         </button>
-
       </div>
     </section>
   );
