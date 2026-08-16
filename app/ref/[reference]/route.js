@@ -22,6 +22,7 @@ export async function GET(request, { params }) {
     const editedImage = await createEditedImage({
       imageBuffer: Buffer.from(image.data),
       referenceId: image.referenceId,
+      studentName: image.studentName,
     });
 
     return new Response(editedImage, {

@@ -12,6 +12,7 @@ export async function GET() {
     const images = await prisma.image.findMany({
       select: {
         id: true,
+        studentName: true,
         referenceId: true,
         originalName: true,
         mimeType: true,

@@ -16,7 +16,7 @@ export async function POST(request) {
   try {
     const formData = await request.formData();
     const file = formData.get("file");
-
+const studentName = formData.get("studentName");
     if (!file || typeof file === "string") {
       return Response.json(
         { error: "Image file is required." },
@@ -59,11 +59,13 @@ export async function POST(request) {
 
     const image = await prisma.image.create({
       data: {
+
         referenceId,
-        originalName: file.name,
-        mimeType: file.type,
-        size: file.size,
-        data: imageBuffer,
+    studentName,
+    originalName: file.name,
+    mimeType: file.type,
+    size: file.size,
+    data: imageBuffer,
       },
     });
 

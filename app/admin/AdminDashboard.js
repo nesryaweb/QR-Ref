@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { signOut } from "next-auth/react";
 export default function AdminPage() {
   const [file, setFile] = useState(null);
+  const [studentName, setStudentName] = useState("");
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState(null);
   const [error, setError] = useState("");
@@ -37,7 +38,10 @@ export default function AdminPage() {
 
   async function handleUpload(event) {
     event.preventDefault();
-
+    if (!studentName.trim()) {
+      setError("Please enter the student's name.");
+      return;
+    }
     if (!file) {
       setError("Please select an image.");
       return;
@@ -49,6 +53,7 @@ export default function AdminPage() {
 
     try {
       const formData = new FormData();
+      formData.append("studentName", studentName.trim());
       formData.append("file", file);
 
       const response = await fetch("/api/images/upload", {
@@ -61,7 +66,7 @@ export default function AdminPage() {
       if (!response.ok) {
         throw new Error(data.error || "Upload failed.");
       }
-
+      setStudentName("");
       setResult(data.image);
       setFile(null);
 
@@ -142,23 +147,41 @@ export default function AdminPage() {
         <section className="rounded-xl border bg-white p-6 shadow-sm">
           <h2 className="text-xl font-semibold">Upload Image</h2>
 
-          <form
-            onSubmit={handleUpload}
-            className="mt-6 space-y-6 flex items-center gap-5 flex-col sm:flex-row"
-          >
-            <div>
-              <label htmlFor="image" className="mb-2 block text-sm font-medium">
-                Image
+          <form onSubmit={handleUpload} className="mt-6 space-y-6">
+            <div className="w-full">
+              <label
+                htmlFor="studentName"
+                className="mb-2 block text-sm font-medium"
+              >
+                Student Name
               </label>
 
               <input
-                id="image"
-                type="file"
-                accept="image/png,image/jpeg,image/webp"
-                onChange={(event) => {
-                  setFile(event.target.files?.[0] || null);
-                }}
-                className="block w-full rounded-md border p-3  file:mr-4
+                id="studentName"
+                type="text"
+                value={studentName}
+                onChange={(event) => setStudentName(event.target.value)}
+                placeholder="Enter student's name"
+                className="w-1/2 rounded-md border p-3 outline-none focus:ring-2 focus:ring-black"
+              />
+            </div>
+            <div className="space-y-6 w-full flex items-center gap-5 flex-col sm:flex-row">
+              <div>
+                <label
+                  htmlFor="image"
+                  className="mb-2 block text-sm font-medium"
+                >
+                  Image
+                </label>
+
+                <input
+                  id="image"
+                  type="file"
+                  accept="image/png,image/jpeg,image/webp"
+                  onChange={(event) => {
+                    setFile(event.target.files?.[0] || null);
+                  }}
+                  className="block w-full rounded-md border p-3  file:mr-4
     file:rounded-md
     file:border-0
     file:bg-gray-200
@@ -168,38 +191,38 @@ export default function AdminPage() {
     file:font-medium
     cursor-pointer
     hover:file:bg-gray-300"
-              />
-            </div>
-
-            {file && (
-              <div className="rounded-md bg-gray-100 p-4 text-sm">
-                <p>
-                  <strong>File:</strong> {file.name}
-                </p>
-
-                <p>
-                  <strong>Size:</strong> {(file.size / 1024).toFixed(1)} KB
-                </p>
-
-                <p>
-                  <strong>Type:</strong> {file.type}
-                </p>
+                />
               </div>
-            )}
 
+              {file && (
+                <div className="rounded-md bg-gray-100 p-4 text-sm">
+                  <p>
+                    <strong>File:</strong> {file.name}
+                  </p>
+
+                  <p>
+                    <strong>Size:</strong> {(file.size / 1024).toFixed(1)} KB
+                  </p>
+
+                  <p>
+                    <strong>Type:</strong> {file.type}
+                  </p>
+                </div>
+              )}
+
+              <button
+                type="submit"
+                disabled={loading}
+                className="h-max rounded-md bg-black hover:bg-stone-900 px-4 py-3 font-medium text-white cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                {loading ? "Uploading..." : "Upload Image"}
+              </button>
+            </div>
             {error && (
               <div className="rounded-md bg-red-50 p-4 text-sm text-red-700">
                 {error}
               </div>
             )}
-
-            <button
-              type="submit"
-              disabled={loading}
-              className="h-max rounded-md bg-black hover:bg-stone-900 px-4 py-3 font-medium text-white cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
-            >
-              {loading ? "Uploading..." : "Upload Image"}
-            </button>
           </form>
         </section>
 
@@ -277,7 +300,7 @@ function ResultCard({ image }) {
 function ImageList({ images, loading, onDelete }) {
   return (
     <section className="rounded-xl border bg-white p-6 shadow-sm">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between w-full">
         <div>
           <h2 className="text-xl font-semibold">Uploaded Images</h2>
 
@@ -313,12 +336,15 @@ function ImageRow({ image, onDelete }) {
     <div className="flex flex-col gap-4 rounded-lg border p-4 md:flex-row md:items-center">
       <img
         src={imageFileUrl}
-        alt={image.originalName}
+        alt={image.studentName || image.originalName}
         className="h-24 w-24 rounded-md object-cover"
       />
 
       <div className="min-w-0 flex-1">
-        <p className="truncate font-medium">{image.originalName}</p>
+        <p className="truncate font-medium">
+       
+          <strong>Student:</strong> {image.studentName || image.originalName}
+        </p>
 
         <p className="mt-1 text-sm text-gray-500">
           Reference: {image.referenceId}
