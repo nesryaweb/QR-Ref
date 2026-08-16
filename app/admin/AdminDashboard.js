@@ -2,19 +2,27 @@
 
 import { useEffect, useState } from "react";
 import { signOut } from "next-auth/react";
+import {
+  createEmptyTranscript,
+} from "@/lib/transcript";
 export default function AdminPage() {
-  const [file, setFile] = useState(null);
-  const [studentName, setStudentName] = useState("");
+ const [transcript, setTranscript] = useState(createEmptyTranscript());
+const [photo, setPhoto] = useState(null);
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState(null);
   const [error, setError] = useState("");
   const [images, setImages] = useState([]);
   const [loadingImages, setLoadingImages] = useState(true);
-
+  const [loadingMessage, setLoadingMessage] = useState("");
   useEffect(() => {
     loadImages();
   }, []);
-
+function updateTranscript(field, value) {
+  setTranscript((current) => ({
+    ...current,
+    [field]: value,
+  }));
+}
   async function loadImages() {
     try {
       setLoadingImages(true);
@@ -38,12 +46,14 @@ export default function AdminPage() {
 
   async function handleUpload(event) {
     event.preventDefault();
+
     if (!studentName.trim()) {
       setError("Please enter the student's name.");
       return;
     }
+
     if (!file) {
-      setError("Please select an image.");
+      setError("Please select a file.");
       return;
     }
 
@@ -51,8 +61,20 @@ export default function AdminPage() {
     setError("");
     setResult(null);
 
+    const isDocx =
+      file.type ===
+        "application/vnd.openxmlformats-officedocument.wordprocessingml.document" ||
+      file.name.toLowerCase().endsWith(".docx");
+
+    if (isDocx) {
+      setLoadingMessage("Changing Word document to image...");
+    } else {
+      setLoadingMessage("Uploading image...");
+    }
+
     try {
       const formData = new FormData();
+
       formData.append("studentName", studentName.trim());
       formData.append("file", file);
 
@@ -66,6 +88,7 @@ export default function AdminPage() {
       if (!response.ok) {
         throw new Error(data.error || "Upload failed.");
       }
+
       setStudentName("");
       setResult(data.image);
       setFile(null);
@@ -78,6 +101,7 @@ export default function AdminPage() {
       setError(error.message);
     } finally {
       setLoading(false);
+      setLoadingMessage("");
     }
   }
 
@@ -145,86 +169,148 @@ export default function AdminPage() {
           </button>
         </header>
         <section className="rounded-xl border bg-white p-6 shadow-sm">
-          <h2 className="text-xl font-semibold">Upload Image</h2>
+  <h2 className="text-xl font-semibold">
+    Create Student Transcript
+  </h2>
 
-          <form onSubmit={handleUpload} className="mt-6 space-y-6">
-            <div className="w-full">
-              <label
-                htmlFor="studentName"
-                className="mb-2 block text-sm font-medium"
-              >
-                Student Name
-              </label>
+  <p className="mt-1 text-sm text-gray-500">
+    Enter the student's information and upload their photo.
+  </p>
 
-              <input
-                id="studentName"
-                type="text"
-                value={studentName}
-                onChange={(event) => setStudentName(event.target.value)}
-                placeholder="Enter student's name"
-                className="w-1/2 rounded-md border p-3 outline-none focus:ring-2 focus:ring-black"
-              />
-            </div>
-            <div className="space-y-6 w-full flex items-center gap-5 flex-col sm:flex-row">
-              <div>
-                <label
-                  htmlFor="image"
-                  className="mb-2 block text-sm font-medium"
-                >
-                  Image
-                </label>
+  <div className="mt-6 space-y-6">
 
-                <input
-                  id="image"
-                  type="file"
-                  accept=".docx,image/png,image/jpeg,image/webp"
-                  onChange={(event) => {
-                    setFile(event.target.files?.[0] || null);
-                  }}
-                  className="block w-full rounded-md border p-3  file:mr-4
-    file:rounded-md
-    file:border-0
-    file:bg-gray-200
-    file:px-4
-    file:py-2
-    file:text-sm
-    file:font-medium
-    cursor-pointer
-    hover:file:bg-gray-300"
-                />
-              </div>
+    {/* Student Name */}
+    <div>
+      <label
+        htmlFor="studentName"
+        className="mb-2 block text-sm font-medium"
+      >
+        Name of the student
+      </label>
 
-              {file && (
-                <div className="rounded-md bg-gray-100 p-4 text-sm">
-                  <p>
-                    <strong>File:</strong> {file.name}
-                  </p>
+      <input
+        id="studentName"
+        type="text"
+        value={transcript.studentName}
+        onChange={(event) =>
+          updateTranscript("studentName", event.target.value)
+        }
+        placeholder="Enter student's full name"
+        className="w-full rounded-md border p-3 outline-none focus:ring-2 focus:ring-black"
+      />
+    </div>
 
-                  <p>
-                    <strong>Size:</strong> {(file.size / 1024).toFixed(1)} KB
-                  </p>
+    {/* Age / Gender / Stream */}
+    <div className="grid gap-5 md:grid-cols-3">
 
-                  <p>
-                    <strong>Type:</strong> {file.type}
-                  </p>
-                </div>
-              )}
+      {/* Age */}
+      <div>
+        <label
+          htmlFor="age"
+          className="mb-2 block text-sm font-medium"
+        >
+          Age
+        </label>
 
-              <button
-                type="submit"
-                disabled={loading}
-                className="h-max rounded-md bg-black hover:bg-stone-900 px-4 py-3 font-medium text-white cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
-              >
-                {loading ? "Uploading..." : "Upload Image"}
-              </button>
-            </div>
-            {error && (
-              <div className="rounded-md bg-red-50 p-4 text-sm text-red-700">
-                {error}
-              </div>
-            )}
-          </form>
-        </section>
+        <input
+          id="age"
+          type="number"
+          min="0"
+          value={transcript.age}
+          onChange={(event) =>
+            updateTranscript("age", event.target.value)
+          }
+          placeholder="Age"
+          className="w-full rounded-md border p-3 outline-none focus:ring-2 focus:ring-black"
+        />
+      </div>
+
+      {/* Gender */}
+      <div>
+        <label
+          htmlFor="gender"
+          className="mb-2 block text-sm font-medium"
+        >
+          Gender
+        </label>
+
+        <select
+          id="gender"
+          value={transcript.gender}
+          onChange={(event) =>
+            updateTranscript("gender", event.target.value)
+          }
+          className="w-full rounded-md border p-3 outline-none focus:ring-2 focus:ring-black"
+        >
+          <option value="">Select gender</option>
+          <option value="Male">Male</option>
+          <option value="Female">Female</option>
+        </select>
+      </div>
+
+      {/* Stream */}
+      <div>
+        <label
+          htmlFor="stream"
+          className="mb-2 block text-sm font-medium"
+        >
+          Stream
+        </label>
+
+        <input
+          id="stream"
+          type="text"
+          value={transcript.stream}
+          onChange={(event) =>
+            updateTranscript("stream", event.target.value)
+          }
+          placeholder="e.g. Natural Science"
+          className="w-full rounded-md border p-3 outline-none focus:ring-2 focus:ring-black"
+        />
+      </div>
+
+    </div>
+
+    {/* Student Photo */}
+    <div>
+      <label
+        htmlFor="studentPhoto"
+        className="mb-2 block text-sm font-medium"
+      >
+        Student Photo
+      </label>
+
+      <input
+        id="studentPhoto"
+        type="file"
+        accept="image/png,image/jpeg,image/webp"
+        onChange={(event) => {
+          setPhoto(event.target.files?.[0] || null);
+        }}
+        className="block w-full rounded-md border p-3 file:mr-4 file:rounded-md file:border-0 file:bg-gray-200 file:px-4 file:py-2 file:text-sm file:font-medium cursor-pointer hover:file:bg-gray-300"
+      />
+
+      {photo && (
+        <div className="mt-4 flex items-center gap-4 rounded-md bg-gray-100 p-4">
+          <img
+            src={URL.createObjectURL(photo)}
+            alt="Student preview"
+            className="h-24 w-20 rounded object-cover"
+          />
+
+          <div className="text-sm">
+            <p className="font-medium">{photo.name}</p>
+
+            <p className="text-gray-500">
+              {(photo.size / 1024).toFixed(1)} KB
+            </p>
+          </div>
+        </div>
+      )}
+    </div>
+
+  </div>
+</section>
 
         {result && <ResultCard image={result} />}
 
@@ -342,7 +428,6 @@ function ImageRow({ image, onDelete }) {
 
       <div className="min-w-0 flex-1">
         <p className="truncate font-medium">
-       
           <strong>Student:</strong> {image.studentName || image.originalName}
         </p>
 
