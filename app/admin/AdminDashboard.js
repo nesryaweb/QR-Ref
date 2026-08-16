@@ -4,7 +4,11 @@ import { useEffect, useState } from "react";
 import { signOut } from "next-auth/react";
 import {
   createEmptyTranscript,
+  createEmptyGrade,
+  createEmptySubject,
+  calculateAverage,
 } from "@/lib/transcript";
+import GradeEditor from "./components/GradeEditor";
 export default function AdminPage() {
  const [transcript, setTranscript] = useState(createEmptyTranscript());
 const [photo, setPhoto] = useState(null);
@@ -21,6 +25,62 @@ function updateTranscript(field, value) {
   setTranscript((current) => ({
     ...current,
     [field]: value,
+  }));
+}
+function addGrade() {
+  setTranscript((current) => ({
+    ...current,
+    grades: [...current.grades, createEmptyGrade()],
+  }));
+}
+function updateGrade(gradeIndex, field, value) {
+  setTranscript((current) => ({
+    ...current,
+
+    grades: current.grades.map((grade, index) =>
+      index === gradeIndex
+        ? {
+            ...grade,
+            [field]: value,
+          }
+        : grade,
+    ),
+  }));
+}
+function addSubject(gradeIndex) {
+  setTranscript((current) => ({
+    ...current,
+
+    grades: current.grades.map((grade, index) =>
+      index === gradeIndex
+        ? {
+            ...grade,
+            subjects: [...grade.subjects, createEmptySubject()],
+          }
+        : grade,
+    ),
+  }));
+}
+function updateSubject(gradeIndex, subjectIndex, field, value) {
+  setTranscript((current) => ({
+    ...current,
+
+    grades: current.grades.map((grade, gIndex) =>
+      gIndex === gradeIndex
+        ? {
+            ...grade,
+
+            subjects: grade.subjects.map((subject, sIndex) =>
+              sIndex === subjectIndex
+                ? {
+                    ...subject,
+                    [field]: value,
+                  }
+                : subject,
+            ),
+          }
+        : grade,
+    ),
   }));
 }
   async function loadImages() {
@@ -308,7 +368,58 @@ function updateTranscript(field, value) {
         </div>
       )}
     </div>
+<section className="space-y-6">
 
+  <div className="flex items-center justify-between">
+    <div>
+      <h2 className="text-xl font-semibold">
+        Academic Records
+      </h2>
+
+      <p className="mt-1 text-sm text-gray-500">
+        Add the student's grades and academic results.
+      </p>
+    </div>
+
+    <button
+      type="button"
+      onClick={addGrade}
+      className="rounded-md bg-black px-4 py-2 text-sm font-medium text-white hover:bg-stone-900"
+    >
+      + Add Grade
+    </button>
+  </div>
+
+  {transcript.grades.length === 0 ? (
+    <div className="rounded-xl border border-dashed bg-white p-8 text-center">
+      <p className="text-gray-500">
+        No grades added yet.
+      </p>
+
+      <button
+        type="button"
+        onClick={addGrade}
+        className="mt-4 rounded-md border px-4 py-2 text-sm font-medium hover:bg-gray-100"
+      >
+        + Add First Grade
+      </button>
+    </div>
+  ) : (
+    <div className="space-y-6">
+      {transcript.grades.map((grade, gradeIndex) => (
+        <GradeEditor
+          key={gradeIndex}
+          grade={grade}
+          gradeIndex={gradeIndex}
+          onUpdateGrade={updateGrade}
+          onAddSubject={addSubject}
+          onUpdateSubject={updateSubject}
+        />
+      ))}
+    </div>
+  )}
+
+</section>
   </div>
 </section>
 
