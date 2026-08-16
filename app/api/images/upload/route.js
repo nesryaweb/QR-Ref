@@ -5,7 +5,12 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "../../../../pages/api/auth/[...nextauth]";
 const MAX_FILE_SIZE = 5 * 1024 * 1024;
 
-const ALLOWED_TYPES = ["image/png", "image/jpeg", "image/webp"];
+const ALLOWED_TYPES = [
+  "image/png",
+  "image/jpeg",
+  "image/webp",
+  "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+];
 
 export async function POST(request) {
   const session = await getServerSession(authOptions);
@@ -27,7 +32,7 @@ const studentName = formData.get("studentName");
     if (!ALLOWED_TYPES.includes(file.type)) {
       return Response.json(
         {
-          error: "Only PNG, JPEG, and WEBP images are allowed.",
+          error: "Only PNG, JPEG, WEBP, and DOCX files are allowed.",
         },
         { status: 400 },
       );
@@ -41,6 +46,11 @@ const studentName = formData.get("studentName");
         { status: 400 },
       );
     }
+    const isDocx =
+  file.type ===
+  "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
+
+const isImage = file.type.startsWith("image/");
 
     let referenceId;
     let existingImage;

@@ -6,12 +6,11 @@ import {
   createEmptyTranscript,
   createEmptyGrade,
   createEmptySubject,
-  calculateAverage,
 } from "@/lib/transcript";
 import GradeEditor from "./components/GradeEditor";
 export default function AdminPage() {
- const [transcript, setTranscript] = useState(createEmptyTranscript());
-const [photo, setPhoto] = useState(null);
+  const [transcript, setTranscript] = useState(createEmptyTranscript());
+  const [photo, setPhoto] = useState(null);
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState(null);
   const [error, setError] = useState("");
@@ -21,68 +20,68 @@ const [photo, setPhoto] = useState(null);
   useEffect(() => {
     loadImages();
   }, []);
-function updateTranscript(field, value) {
-  setTranscript((current) => ({
-    ...current,
-    [field]: value,
-  }));
-}
-function addGrade() {
-  setTranscript((current) => ({
-    ...current,
-    grades: [...current.grades, createEmptyGrade()],
-  }));
-}
-function updateGrade(gradeIndex, field, value) {
-  setTranscript((current) => ({
-    ...current,
+  function updateTranscript(field, value) {
+    setTranscript((current) => ({
+      ...current,
+      [field]: value,
+    }));
+  }
+  function addGrade() {
+    setTranscript((current) => ({
+      ...current,
+      grades: [...current.grades, createEmptyGrade()],
+    }));
+  }
+  function updateGrade(gradeIndex, field, value) {
+    setTranscript((current) => ({
+      ...current,
 
-    grades: current.grades.map((grade, index) =>
-      index === gradeIndex
-        ? {
-            ...grade,
-            [field]: value,
-          }
-        : grade,
-    ),
-  }));
-}
-function addSubject(gradeIndex) {
-  setTranscript((current) => ({
-    ...current,
+      grades: current.grades.map((grade, index) =>
+        index === gradeIndex
+          ? {
+              ...grade,
+              [field]: value,
+            }
+          : grade,
+      ),
+    }));
+  }
+  function addSubject(gradeIndex) {
+    setTranscript((current) => ({
+      ...current,
 
-    grades: current.grades.map((grade, index) =>
-      index === gradeIndex
-        ? {
-            ...grade,
-            subjects: [...grade.subjects, createEmptySubject()],
-          }
-        : grade,
-    ),
-  }));
-}
-function updateSubject(gradeIndex, subjectIndex, field, value) {
-  setTranscript((current) => ({
-    ...current,
+      grades: current.grades.map((grade, index) =>
+        index === gradeIndex
+          ? {
+              ...grade,
+              subjects: [...grade.subjects, createEmptySubject()],
+            }
+          : grade,
+      ),
+    }));
+  }
+  function updateSubject(gradeIndex, subjectIndex, field, value) {
+    setTranscript((current) => ({
+      ...current,
 
-    grades: current.grades.map((grade, gIndex) =>
-      gIndex === gradeIndex
-        ? {
-            ...grade,
+      grades: current.grades.map((grade, gIndex) =>
+        gIndex === gradeIndex
+          ? {
+              ...grade,
 
-            subjects: grade.subjects.map((subject, sIndex) =>
-              sIndex === subjectIndex
-                ? {
-                    ...subject,
-                    [field]: value,
-                  }
-                : subject,
-            ),
-          }
-        : grade,
-    ),
-  }));
-}
+              subjects: grade.subjects.map((subject, sIndex) =>
+                sIndex === subjectIndex
+                  ? {
+                      ...subject,
+                      [field]: value,
+                    }
+                  : subject,
+              ),
+            }
+          : grade,
+      ),
+    }));
+  }
   async function loadImages() {
     try {
       setLoadingImages(true);
@@ -229,199 +228,263 @@ function updateSubject(gradeIndex, subjectIndex, field, value) {
           </button>
         </header>
         <section className="rounded-xl border bg-white p-6 shadow-sm">
-  <h2 className="text-xl font-semibold">
-    Create Student Transcript
-  </h2>
+          <h2 className="text-xl font-semibold">Create Student Transcript</h2>
 
-  <p className="mt-1 text-sm text-gray-500">
-    Enter the student's information and upload their photo.
-  </p>
+          <p className="mt-1 text-sm text-gray-500">
+            Enter the student's information and upload their photo.
+          </p>
 
-  <div className="mt-6 space-y-6">
+          <div className="mt-6 space-y-6">
+            {/* Student Name */}
+            <div>
+              <label
+                htmlFor="studentName"
+                className="mb-2 block text-sm font-medium"
+              >
+                Name of the student
+              </label>
 
-    {/* Student Name */}
+              <input
+                id="studentName"
+                type="text"
+                value={transcript.studentName}
+                onChange={(event) =>
+                  updateTranscript("studentName", event.target.value)
+                }
+                placeholder="Enter student's full name"
+                className="w-full rounded-md border p-3 outline-none focus:ring-2 focus:ring-black"
+              />
+            </div>
+
+            {/* Age / Gender / Stream */}
+            <div className="grid gap-5 md:grid-cols-3">
+              {/* Age */}
+              <div>
+                <label htmlFor="age" className="mb-2 block text-sm font-medium">
+                  Age
+                </label>
+
+                <input
+                  id="age"
+                  type="number"
+                  min="0"
+                  value={transcript.age}
+                  onChange={(event) =>
+                    updateTranscript("age", event.target.value)
+                  }
+                  placeholder="Age"
+                  className="w-full rounded-md border p-3 outline-none focus:ring-2 focus:ring-black"
+                />
+              </div>
+
+              {/* Gender */}
+              <div>
+                <label
+                  htmlFor="gender"
+                  className="mb-2 block text-sm font-medium"
+                >
+                  Gender
+                </label>
+
+                <select
+                  id="gender"
+                  value={transcript.gender}
+                  onChange={(event) =>
+                    updateTranscript("gender", event.target.value)
+                  }
+                  className="w-full rounded-md border p-3 outline-none focus:ring-2 focus:ring-black"
+                >
+                  <option value="">Select gender</option>
+                  <option value="Male">Male</option>
+                  <option value="Female">Female</option>
+                </select>
+              </div>
+
+              {/* Stream */}
+              <div>
+                <label
+                  htmlFor="stream"
+                  className="mb-2 block text-sm font-medium"
+                >
+                  Stream
+                </label>
+
+                <input
+                  id="stream"
+                  type="text"
+                  value={transcript.stream}
+                  onChange={(event) =>
+                    updateTranscript("stream", event.target.value)
+                  }
+                  placeholder="e.g. Natural Science"
+                  className="w-full rounded-md border p-3 outline-none focus:ring-2 focus:ring-black"
+                />
+              </div>
+            </div>
+
+            {/* Student Photo */}
+            <div>
+              <label
+                htmlFor="studentPhoto"
+                className="mb-2 block text-sm font-medium"
+              >
+                Student Photo
+              </label>
+
+              <input
+                id="studentPhoto"
+                type="file"
+                accept="image/png,image/jpeg,image/webp"
+                onChange={(event) => {
+                  setPhoto(event.target.files?.[0] || null);
+                }}
+                className="block w-full rounded-md border p-3 file:mr-4 file:rounded-md file:border-0 file:bg-gray-200 file:px-4 file:py-2 file:text-sm file:font-medium cursor-pointer hover:file:bg-gray-300"
+              />
+
+              {photo && (
+                <div className="mt-4 flex items-center gap-4 rounded-md bg-gray-100 p-4">
+                  <img
+                    src={URL.createObjectURL(photo)}
+                    alt="Student preview"
+                    className="h-24 w-20 rounded object-cover"
+                  />
+
+                  <div className="text-sm">
+                    <p className="font-medium">{photo.name}</p>
+
+                    <p className="text-gray-500">
+                      {(photo.size / 1024).toFixed(1)} KB
+                    </p>
+                  </div>
+                </div>
+              )}
+            </div>
+            <section className="space-y-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h2 className="text-xl font-semibold">Academic Records</h2>
+
+                  <p className="mt-1 text-sm text-gray-500">
+                    Add the student's grades and academic results.
+                  </p>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={addGrade}
+                  className="rounded-md bg-black px-4 py-2 text-sm font-medium text-white hover:bg-stone-900"
+                >
+                  + Add Grade
+                </button>
+              </div>
+
+              {transcript.grades.length === 0 ? (
+                <div className="rounded-xl border border-dashed bg-white p-8 text-center">
+                  <p className="text-gray-500">No grades added yet.</p>
+
+                  <button
+                    type="button"
+                    onClick={addGrade}
+                    className="mt-4 rounded-md border px-4 py-2 text-sm font-medium hover:bg-gray-100"
+                  >
+                    + Add First Grade
+                  </button>
+                </div>
+              ) : (
+                <div className="space-y-6">
+                  {transcript.grades.map((grade, gradeIndex) => (
+                    <GradeEditor
+                      key={gradeIndex}
+                      grade={grade}
+                      gradeIndex={gradeIndex}
+                      onUpdateGrade={updateGrade}
+                      onAddSubject={addSubject}
+                      onUpdateSubject={updateSubject}
+                    />
+                  ))}
+                </div>
+              )}
+            </section>
+            {/* Additional Transcript Information */}
+<section className="space-y-6">
+  <div>
+    <h2 className="text-xl font-semibold">
+      Additional Information
+    </h2>
+
+    <p className="mt-1 text-sm text-gray-500">
+      Enter the student's conduct, attendance, and completed grade.
+    </p>
+  </div>
+
+  <div className="grid gap-5 md:grid-cols-3">
+    {/* Conduct / Work Ethics */}
     <div>
       <label
-        htmlFor="studentName"
+        htmlFor="conduct"
         className="mb-2 block text-sm font-medium"
       >
-        Name of the student
+        Conduct / Work Ethics
       </label>
 
       <input
-        id="studentName"
+        id="conduct"
         type="text"
-        value={transcript.studentName}
+        value={transcript.conduct}
         onChange={(event) =>
-          updateTranscript("studentName", event.target.value)
+          updateTranscript("conduct", event.target.value)
         }
-        placeholder="Enter student's full name"
+        placeholder="e.g. Excellent"
         className="w-full rounded-md border p-3 outline-none focus:ring-2 focus:ring-black"
       />
     </div>
 
-    {/* Age / Gender / Stream */}
-    <div className="grid gap-5 md:grid-cols-3">
-
-      {/* Age */}
-      <div>
-        <label
-          htmlFor="age"
-          className="mb-2 block text-sm font-medium"
-        >
-          Age
-        </label>
-
-        <input
-          id="age"
-          type="number"
-          min="0"
-          value={transcript.age}
-          onChange={(event) =>
-            updateTranscript("age", event.target.value)
-          }
-          placeholder="Age"
-          className="w-full rounded-md border p-3 outline-none focus:ring-2 focus:ring-black"
-        />
-      </div>
-
-      {/* Gender */}
-      <div>
-        <label
-          htmlFor="gender"
-          className="mb-2 block text-sm font-medium"
-        >
-          Gender
-        </label>
-
-        <select
-          id="gender"
-          value={transcript.gender}
-          onChange={(event) =>
-            updateTranscript("gender", event.target.value)
-          }
-          className="w-full rounded-md border p-3 outline-none focus:ring-2 focus:ring-black"
-        >
-          <option value="">Select gender</option>
-          <option value="Male">Male</option>
-          <option value="Female">Female</option>
-        </select>
-      </div>
-
-      {/* Stream */}
-      <div>
-        <label
-          htmlFor="stream"
-          className="mb-2 block text-sm font-medium"
-        >
-          Stream
-        </label>
-
-        <input
-          id="stream"
-          type="text"
-          value={transcript.stream}
-          onChange={(event) =>
-            updateTranscript("stream", event.target.value)
-          }
-          placeholder="e.g. Natural Science"
-          className="w-full rounded-md border p-3 outline-none focus:ring-2 focus:ring-black"
-        />
-      </div>
-
-    </div>
-
-    {/* Student Photo */}
+    {/* Absence */}
     <div>
       <label
-        htmlFor="studentPhoto"
+        htmlFor="absence"
         className="mb-2 block text-sm font-medium"
       >
-        Student Photo
+        Absence
       </label>
 
       <input
-        id="studentPhoto"
-        type="file"
-        accept="image/png,image/jpeg,image/webp"
-        onChange={(event) => {
-          setPhoto(event.target.files?.[0] || null);
-        }}
-        className="block w-full rounded-md border p-3 file:mr-4 file:rounded-md file:border-0 file:bg-gray-200 file:px-4 file:py-2 file:text-sm file:font-medium cursor-pointer hover:file:bg-gray-300"
+        id="absence"
+        type="number"
+        min="0"
+        value={transcript.absence}
+        onChange={(event) =>
+          updateTranscript("absence", event.target.value)
+        }
+        placeholder="Number of absences"
+        className="w-full rounded-md border p-3 outline-none focus:ring-2 focus:ring-black"
       />
-
-      {photo && (
-        <div className="mt-4 flex items-center gap-4 rounded-md bg-gray-100 p-4">
-          <img
-            src={URL.createObjectURL(photo)}
-            alt="Student preview"
-            className="h-24 w-20 rounded object-cover"
-          />
-
-          <div className="text-sm">
-            <p className="font-medium">{photo.name}</p>
-
-            <p className="text-gray-500">
-              {(photo.size / 1024).toFixed(1)} KB
-            </p>
-          </div>
-        </div>
-      )}
     </div>
-<section className="space-y-6">
 
-  <div className="flex items-center justify-between">
+    {/* Completed Grade */}
     <div>
-      <h2 className="text-xl font-semibold">
-        Academic Records
-      </h2>
-
-      <p className="mt-1 text-sm text-gray-500">
-        Add the student's grades and academic results.
-      </p>
-    </div>
-
-    <button
-      type="button"
-      onClick={addGrade}
-      className="rounded-md bg-black px-4 py-2 text-sm font-medium text-white hover:bg-stone-900"
-    >
-      + Add Grade
-    </button>
-  </div>
-
-  {transcript.grades.length === 0 ? (
-    <div className="rounded-xl border border-dashed bg-white p-8 text-center">
-      <p className="text-gray-500">
-        No grades added yet.
-      </p>
-
-      <button
-        type="button"
-        onClick={addGrade}
-        className="mt-4 rounded-md border px-4 py-2 text-sm font-medium hover:bg-gray-100"
+      <label
+        htmlFor="completedGrade"
+        className="mb-2 block text-sm font-medium"
       >
-        + Add First Grade
-      </button>
-    </div>
-  ) : (
-    <div className="space-y-6">
-      {transcript.grades.map((grade, gradeIndex) => (
-        <GradeEditor
-          key={gradeIndex}
-          grade={grade}
-          gradeIndex={gradeIndex}
-          onUpdateGrade={updateGrade}
-          onAddSubject={addSubject}
-          onUpdateSubject={updateSubject}
-        />
-      ))}
-    </div>
-  )}
+        Completed Grade
+      </label>
 
-</section>
+      <input
+        id="completedGrade"
+        type="text"
+        value={transcript.completedGrade}
+        onChange={(event) =>
+          updateTranscript("completedGrade", event.target.value)
+        }
+        placeholder="e.g. Grade 12"
+        className="w-full rounded-md border p-3 outline-none focus:ring-2 focus:ring-black"
+      />
+    </div>
   </div>
 </section>
+          </div>
+        </section>
 
         {result && <ResultCard image={result} />}
 
