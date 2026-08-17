@@ -14,15 +14,34 @@ datasource db {
 
 
 
+model Transcript {
+  id            Int      @id @default(autoincrement())
+  referenceId   String   @unique
 
+  studentName   String
+  studentId     String
+  age           String
+  gender        String
+  stream        String
 
-model Image {
-  id           Int      @id @default(autoincrement())
-  referenceId  String   @unique
-  studentName  String
-  originalName String
-  mimeType     String
-  size         Int
-  data         Bytes
-  createdAt    DateTime @default(now())
+  // Student photo
+  photo         Bytes
+  photoMimeType String
+  photoName     String
+  photoSize     Int
+
+  // Transcript data
+  transcript    Json
+
+  // Generated transcript image
+  image         Bytes?
+  imageMimeType String?
+  imageSize     Int?
+
+  // Generated PDF
+  pdf           Bytes?
+  pdfSize       Int?
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 }
