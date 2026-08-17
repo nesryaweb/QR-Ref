@@ -2,6 +2,7 @@
 
 import { Fragment } from "react";
 import { calculateAverage, calculateGradeTotals } from "@/lib/transcript";
+import CompletedGrades from "./CompletedGrades"
 
 export default function TranscriptPreview({ transcript }) {
   const grades = transcript.grades || [];
@@ -128,7 +129,7 @@ export default function TranscriptPreview({ transcript }) {
               TRANSCRIPT TABLE
           ========================================= */}
 
-          <div className="mt-0">
+          <div className="mt-0 w-full">
             {grades.length === 0 ? (
               <div className="border border-black p-10 text-center text-gray-500">
                 Add grades and subjects to display the transcript.
@@ -136,56 +137,81 @@ export default function TranscriptPreview({ transcript }) {
             ) : (
               <table className="w-full table-fixed border-collapse text-[10px]">
                 <thead>
-                  {/* GRADE HEADER */}
+                  {/* =====================================
+      ROW 1 + 2 — STUDENT ID + GRADE/YEAR
+  ===================================== */}
+
                   <tr>
+                    {/* STUDENT ID */}
                     <th
                       rowSpan={2}
-                      className="w-[220px] border border-black px-2 py-1 text-center font-semibold"
+                      className="w-[220px] border border-black px-2 py-1 text-left align-middle"
                     >
-                      Subjects
+                      <div className="font-semibold">
+                        Student ID: {transcript.studentId || "____________"}
+                      </div>
                     </th>
 
+                    {/* EACH GRADE */}
                     {grades.map((grade, index) => (
                       <th
                         key={index}
                         colSpan={3}
-                        className="border border-black px-1 py-1"
+                        rowSpan={2}
+                        className="border border-black p-0 text-center"
                       >
-                        <div className="font-bold">
-                          {grade.gradeName || "Grade"}
-                        </div>
+                        <div className="flex flex-col">
+                          {/* GRADE */}
+                          <div className="border-b border-black px-1 py-1 font-bold">
+                            Grade: {grade.gradeName || "____"}
+                          </div>
 
-                        <div className="font-normal">
-                          Aca. Year: {grade.academicYear || "-"}
+                          {/* ACADEMIC YEAR */}
+                          <div className="px-1 py-1 font-normal">
+                            Academic Year:{" "}
+                            {grade.academicYear || "____________"}
+                          </div>
                         </div>
                       </th>
                     ))}
                   </tr>
 
-                  {/* SEMESTER HEADER */}
+                  {/* =====================================
+      EMPTY STRUCTURAL ROW
+  ===================================== */}
+
+                  <tr></tr>
+
+                  {/* =====================================
+      ROW 3 — SUBJECT + SEMESTERS
+  ===================================== */}
+
                   <tr>
+                    <th className="border border-black px-1 py-1 text-left font-semibold">
+                      Subject
+                    </th>
+
                     {grades.map((grade, index) => (
                       <Fragment key={index}>
-                        <th className="border border-black px-1 py-1 font-normal">
+                        <th className="border border-black px-1 py-1 text-center font-normal">
                           1st
                           <br />
                           Sem
                         </th>
 
-                        <th className="border border-black px-1 py-1 font-normal">
+                        <th className="border border-black px-1 py-1 text-center font-normal">
                           2nd
                           <br />
                           Sem
                         </th>
 
-                        <th className="border border-black px-1 py-1 font-normal">
+                        <th className="border border-black px-1 py-1 text-center font-normal">
                           Average
                         </th>
                       </Fragment>
                     ))}
                   </tr>
                 </thead>
-
                 {/* =====================================
                     SUBJECTS
                 ===================================== */}
@@ -289,32 +315,45 @@ export default function TranscriptPreview({ transcript }) {
                   </tr>
 
                   {/* =====================================
-                      RANK
-                  ===================================== */}
+    RANK
+===================================== */}
 
                   <tr>
                     <td className="border border-black px-1 py-[2px] font-bold">
                       Rank
                     </td>
 
-                    {grades.map((grade, index) => (
-                      <td
-                        key={index}
-                        colSpan={3}
-                        className="border border-black text-center"
-                      >
-                        -
-                      </td>
-                    ))}
-                  </tr>
+                    {grades.map((grade, index) => {
+                      const rankAverage = calculateAverage(
+                        grade.firstSemesterRank,
+                        grade.secondSemesterRank,
+                      );
+                      return (
+                        <Fragment key={index}>
+                          {/* 1st Semester Rank */}
+                          <td className="border border-black text-center">
+                            {grade.firstSemesterRank || "-"}
+                          </td>
 
+                          {/* 2nd Semester Rank */}
+                          <td className="border border-black text-center">
+                            {grade.secondSemesterRank || "-"}
+                          </td>
+                          {/* Average Rank */}
+                          <td className="border border-black text-center font-semibold">
+                            {rankAverage === "" ? "-" : rankAverage}
+                          </td>
+                        </Fragment>
+                      );
+                    })}
+                  </tr>
                   {/* =====================================
-                      CONDUCT
-                  ===================================== */}
+    CONDUCT / WORK ETHIC
+===================================== */}
 
                   <tr>
                     <td className="border border-black px-1 py-[2px] font-bold">
-                      Conduct/Work Ethic
+                      Conduct / Work Ethic
                     </td>
 
                     {grades.map((grade, index) => (
@@ -323,14 +362,14 @@ export default function TranscriptPreview({ transcript }) {
                         colSpan={3}
                         className="border border-black text-center"
                       >
-                        {transcript.conduct || "-"}
+                        {grade.conduct || "-"}
                       </td>
                     ))}
                   </tr>
 
                   {/* =====================================
-                      ABSENCES
-                  ===================================== */}
+    ABSENCES
+===================================== */}
 
                   <tr>
                     <td className="border border-black px-1 py-[2px] font-bold">
@@ -343,7 +382,7 @@ export default function TranscriptPreview({ transcript }) {
                         colSpan={3}
                         className="border border-black text-center"
                       >
-                        {transcript.absence || "-"}
+                        {grade.absence || "-"}
                       </td>
                     ))}
                   </tr>
@@ -355,13 +394,8 @@ export default function TranscriptPreview({ transcript }) {
           {/* =========================================
               COMPLETED GRADE
           ========================================= */}
-
-          <p className="mt-2 text-xs">
-            He/She has completed grade{" "}
-            <span className="font-semibold underline">
-              {transcript.completedGrade || "________________"}
-            </span>
-          </p>
+         
+    <CompletedGrades grades = {grades} />
 
           {/* =========================================
               SIGNATURES
@@ -414,3 +448,4 @@ function InfoLine({ label, value }) {
     </div>
   );
 }
+      

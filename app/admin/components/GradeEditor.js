@@ -1,6 +1,9 @@
 "use client";
 
-import { createEmptySubject, calculateAverage, calculateGradeTotals } from "@/lib/transcript";
+import {
+  calculateAverage,
+  calculateGradeTotals,
+} from "@/lib/transcript";
 
 export default function GradeEditor({
   grade,
@@ -13,7 +16,17 @@ export default function GradeEditor({
 
   return (
     <section className="rounded-xl border bg-white p-6 shadow-sm">
-      <div className="grid gap-5 md:grid-cols-2">
+      {/* Grade Information */}
+      <div>
+        <h3 className="text-lg font-semibold">Academic Year</h3>
+
+        <p className="mt-1 text-sm text-gray-500">
+          Enter the grade, academic year, conduct, attendance, and semester
+          rankings.
+        </p>
+      </div>
+
+      <div className="mt-5 grid gap-5 md:grid-cols-2">
         {/* Grade */}
         <div>
           <label className="mb-2 block text-sm font-medium">Grade</label>
@@ -45,6 +58,96 @@ export default function GradeEditor({
             className="w-full rounded-md border p-3 outline-none focus:ring-2 focus:ring-black"
           />
         </div>
+
+        {/* Conduct / Work Ethics */}
+        <div>
+          <label className="mb-2 block text-sm font-medium">
+            Conduct / Work Ethics
+          </label>
+
+          <input
+            type="text"
+            value={grade.conduct}
+            onChange={(event) =>
+              onUpdateGrade(gradeIndex, "conduct", event.target.value)
+            }
+            placeholder="e.g. Excellent"
+            className="w-full rounded-md border p-3 outline-none focus:ring-2 focus:ring-black"
+          />
+        </div>
+
+        {/* Absence */}
+        <div>
+          <label className="mb-2 block text-sm font-medium">
+            Absences
+          </label>
+
+          <input
+            type="number"
+            min="0"
+            value={grade.absence}
+            onChange={(event) =>
+              onUpdateGrade(gradeIndex, "absence", event.target.value)
+            }
+            placeholder="Number of absences"
+            className="w-full rounded-md border p-3 outline-none focus:ring-2 focus:ring-black"
+          />
+        </div>
+      </div>
+
+      {/* Semester Ranks */}
+      <div className="mt-6">
+        <h3 className="font-semibold">Semester Ranking</h3>
+
+        <p className="mt-1 text-sm text-gray-500">
+          Enter the student's rank for each semester.
+        </p>
+
+        <div className="mt-4 grid gap-5 md:grid-cols-2">
+          {/* First Semester Rank */}
+          <div>
+            <label className="mb-2 block text-sm font-medium">
+              1st Semester Rank
+            </label>
+
+            <input
+              type="number"
+              min="1"
+              value={grade.firstSemesterRank}
+              onChange={(event) =>
+                onUpdateGrade(
+                  gradeIndex,
+                  "firstSemesterRank",
+                  event.target.value,
+                )
+              }
+              placeholder="e.g. 5"
+              className="w-full rounded-md border p-3 outline-none focus:ring-2 focus:ring-black"
+            />
+          </div>
+
+          {/* Second Semester Rank */}
+          <div>
+            <label className="mb-2 block text-sm font-medium">
+              2nd Semester Rank
+            </label>
+
+            <input
+              type="number"
+              min="1"
+              value={grade.secondSemesterRank}
+              onChange={(event) =>
+                onUpdateGrade(
+                  gradeIndex,
+                  "secondSemesterRank",
+                  event.target.value,
+                )
+              }
+              placeholder="e.g. 3"
+              className="w-full rounded-md border p-3 outline-none focus:ring-2 focus:ring-black"
+            />
+          </div>
+        </div>
       </div>
 
       {/* Subjects */}
@@ -62,7 +165,9 @@ export default function GradeEditor({
             <table className="w-full min-w-[700px] border-collapse">
               <thead>
                 <tr className="border-b bg-gray-50">
-                  <th className="p-3 text-left text-sm font-medium">Subject</th>
+                  <th className="p-3 text-left text-sm font-medium">
+                    Subject
+                  </th>
 
                   <th className="p-3 text-left text-sm font-medium">
                     1st Semester
@@ -72,7 +177,9 @@ export default function GradeEditor({
                     2nd Semester
                   </th>
 
-                  <th className="p-3 text-left text-sm font-medium">Average</th>
+                  <th className="p-3 text-left text-sm font-medium">
+                    Average
+                  </th>
                 </tr>
               </thead>
 
@@ -153,6 +260,7 @@ export default function GradeEditor({
                   );
                 })}
               </tbody>
+
               <tbody>
                 <tr className="border-t-2 border-gray-800">
                   <td className="p-3 font-semibold">Total</td>
@@ -184,7 +292,9 @@ export default function GradeEditor({
                   </td>
 
                   <td className="p-3 font-semibold">
-                    {totals.overallAverage === "" ? "-" : totals.overallAverage}
+                    {totals.overallAverage === ""
+                      ? "-"
+                      : totals.overallAverage}
                   </td>
                 </tr>
               </tbody>
@@ -202,4 +312,4 @@ export default function GradeEditor({
       </div>
     </section>
   );
-}
+} 

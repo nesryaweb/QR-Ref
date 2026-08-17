@@ -5,14 +5,14 @@ export async function GET(request, { params }) {
   try {
     const { reference } = await params;
 
-    const image = await prisma.image.findUnique({
+    const transcript = await prisma.transcript.findUnique({
       where: {
         referenceId: reference,
       },
     });
 
-    if (!image) {
-      return new Response("Image not found", {
+    if (!transcript) {
+      return new Response("Transcript not found", {
         status: 404,
       });
     }
@@ -21,15 +21,14 @@ export async function GET(request, { params }) {
       process.env.NEXT_PUBLIC_APP_URL ||
       "http://localhost:3000";
 
-    const imageUrl = `${baseUrl}/ref/${image.referenceId}.${getExtension(
-      image.mimeType
-    )}`;
+    // QR points to the public transcript page.
+    const transcriptUrl = `${baseUrl}/ref/${transcript.referenceId}`;
 
-    const qrCode = await QRCode.toBuffer(imageUrl, {
+    const qrCode = await QRCode.toBuffer(transcriptUrl, {
       type: "png",
       width: 500,
       margin: 2,
-      errorCorrectionLevel: "M",
+      errorCorrectionLevel: "H",
     });
 
     return new Response(qrCode, {
@@ -41,20 +40,10 @@ export async function GET(request, { params }) {
       },
     });
   } catch (error) {
-    console.error("QR generation failed:", error);
+    console.error("Transcript QR generation failed:", error);
 
     return new Response("Failed to generate QR code", {
       status: 500,
     });
   }
-}
-
-function getExtension(mimeType) {
-  const extensions = {
-    "image/jpeg": "jpg",
-    "image/png": "png",
-    "image/webp": "webp",
-  };
-
-  return extensions[mimeType] || "jpg";
 }

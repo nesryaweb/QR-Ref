@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { signOut } from "next-auth/react";
-import TranscriptDocument from "./components/TranscriptDocument"; 
+import TranscriptDocument from "./components/TranscriptDocument";
 import {
   createEmptyTranscript,
   createEmptyGrade,
@@ -13,16 +13,38 @@ import GradeEditor from "./components/GradeEditor";
 export default function AdminPage() {
   const [transcript, setTranscript] = useState(createEmptyTranscript());
   const [photo, setPhoto] = useState(null);
+
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState(null);
   const [error, setError] = useState("");
-  const [images, setImages] = useState([]);
-  const [loadingImages, setLoadingImages] = useState(true);
 
-  const [loadingMessage, setLoadingMessage] = useState("");
+  const [transcripts, setTranscripts] = useState([]);
+  const [loadingTranscripts, setLoadingTranscripts] = useState(true);
   useEffect(() => {
-    loadImages();
+    loadTranscripts();
   }, []);
+  async function loadTranscripts() {
+    try {
+      setLoadingTranscripts(true);
+
+      const response = await fetch("/api/transcripts");
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to load transcripts.");
+      }
+
+      setTranscripts(data.transcripts);
+    } catch (error) {
+      console.error(error);
+      setError(error.message);
+    } finally {
+      setLoadingTranscripts(false);
+    }
+  }
+  const [loadingMessage, setLoadingMessage] = useState("");
+
   function updateTranscript(field, value) {
     setTranscript((current) => ({
       ...current,
@@ -85,62 +107,46 @@ export default function AdminPage() {
       ),
     }));
   }
-  async function loadImages() {
-    try {
-      setLoadingImages(true);
 
-      const response = await fetch("/api/images");
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || "Failed to load images.");
-      }
-
-      setImages(data.images);
-    } catch (error) {
-      console.error(error);
-      setError(error.message);
-    } finally {
-      setLoadingImages(false);
-    }
-  }
-
-  async function handleUpload(event) {
+  async function handleSaveTranscript(event) {
     event.preventDefault();
-
-    if (!studentName.trim()) {
-      setError("Please enter the student's name.");
-      return;
-    }
-
-    if (!file) {
-      setError("Please select a file.");
-      return;
-    }
 
     setLoading(true);
     setError("");
     setResult(null);
-
-    const isDocx =
-      file.type ===
-        "application/vnd.openxmlformats-officedocument.wordprocessingml.document" ||
-      file.name.toLowerCase().endsWith(".docx");
-
-    if (isDocx) {
-      setLoadingMessage("Changing Word document to image...");
-    } else {
-      setLoadingMessage("Uploading image...");
-    }
+    setLoadingMessage("Saving transcript...");
 
     try {
+      if (!transcript.studentName?.trim()) {
+        throw new Error("Please enter the student's name.");
+      }
+
+      if (!transcript.studentId?.trim()) {
+        throw new Error("Please enter the student's ID.");
+      }
+
+      if (!photo) {
+        throw new Error("Please upload the student's photo.");
+      }
+
+      if (!transcript.grades?.length) {
+        throw new Error("Please add at least one grade.");
+      }
+
       const formData = new FormData();
 
-      formData.append("studentName", studentName.trim());
-      formData.append("file", file);
+      formData.append(
+        "transcript",
+        JSON.stringify({
+          ...transcript,
+          photo: undefined,
+          photoSrc: undefined,
+        }),
+      );
 
-      const response = await fetch("/api/images/upload", {
+      formData.append("photo", photo);
+
+      const response = await fetch("/api/transcripts", {
         method: "POST",
         body: formData,
       });
@@ -148,19 +154,23 @@ export default function AdminPage() {
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || "Upload failed.");
+        throw new Error(data.error || "Failed to save transcript.");
       }
 
-      setStudentName("");
-      setResult(data.image);
-      setFile(null);
+      console.log("SAVED TRANSCRIPT:", data.transcript);
 
-      event.target.reset();
+      setResult(data.transcript);
 
-      await loadImages();
+      setTranscript(createEmptyTranscript());
+      setPhoto(null);
+
+      await loadTranscripts();
     } catch (error) {
-      console.error(error);
-      setError(error.message);
+      console.error("Transcript submission failed:", error);
+
+      setError(
+        error instanceof Error ? error.message : "Failed to save transcript.",
+      );
     } finally {
       setLoading(false);
       setLoadingMessage("");
@@ -169,7 +179,7 @@ export default function AdminPage() {
 
   async function handleDelete(referenceId) {
     const confirmed = window.confirm(
-      `Are you sure you want to delete image ${referenceId}?`,
+      `Are you sure you want to delete transcript ${referenceId}?`,
     );
 
     if (!confirmed) {
@@ -179,7 +189,7 @@ export default function AdminPage() {
     try {
       setError("");
 
-      const response = await fetch("/api/images", {
+      const response = await fetch("/api/transcripts", {
         method: "DELETE",
         headers: {
           "Content-Type": "application/json",
@@ -199,7 +209,7 @@ export default function AdminPage() {
         setResult(null);
       }
 
-      await loadImages();
+      await loadTranscripts();
     } catch (error) {
       console.error(error);
       setError(error.message);
@@ -258,7 +268,26 @@ export default function AdminPage() {
                 className="w-full rounded-md border p-3 outline-none focus:ring-2 focus:ring-black"
               />
             </div>
+            {/* Student ID */}
+            <div>
+              <label
+                htmlFor="studentId"
+                className="mb-2 block text-sm font-medium"
+              >
+                Student ID
+              </label>
 
+              <input
+                id="studentId"
+                type="text"
+                value={transcript.studentId}
+                onChange={(event) =>
+                  updateTranscript("studentId", event.target.value)
+                }
+                placeholder="e.g. 1121564"
+                className="w-full rounded-md border p-3 outline-none focus:ring-2 focus:ring-black"
+              />
+            </div>
             {/* Age / Gender / Stream */}
             <div className="grid gap-5 md:grid-cols-3">
               {/* Age */}
@@ -340,8 +369,19 @@ export default function AdminPage() {
                 accept="image/png,image/jpeg,image/webp"
                 onChange={(event) => {
                   const selectedPhoto = event.target.files?.[0] || null;
+
                   setPhoto(selectedPhoto);
+
                   updateTranscript("photo", selectedPhoto);
+
+                  if (selectedPhoto) {
+                    updateTranscript(
+                      "photoSrc",
+                      URL.createObjectURL(selectedPhoto),
+                    );
+                  } else {
+                    updateTranscript("photoSrc", null);
+                  }
                 }}
                 className="block w-full rounded-md border p-3 file:mr-4 file:rounded-md file:border-0 file:bg-gray-200 file:px-4 file:py-2 file:text-sm file:font-medium cursor-pointer hover:file:bg-gray-300"
               />
@@ -377,7 +417,7 @@ export default function AdminPage() {
                 <button
                   type="button"
                   onClick={addGrade}
-                  className="rounded-md bg-black px-4 py-2 text-sm font-medium text-white hover:bg-stone-900"
+                  className="rounded-md cursor-pointer bg-black px-4 py-2 text-sm font-medium text-white hover:bg-stone-900"
                 >
                   + Add Grade
                 </button>
@@ -390,7 +430,7 @@ export default function AdminPage() {
                   <button
                     type="button"
                     onClick={addGrade}
-                    className="mt-4 rounded-md border px-4 py-2 text-sm font-medium hover:bg-gray-100"
+                    className="mt-4 cursor-pointer rounded-md border px-4 py-2 text-sm font-medium hover:bg-gray-100"
                   >
                     + Add First Grade
                   </button>
@@ -409,119 +449,25 @@ export default function AdminPage() {
                   ))}
                 </div>
               )}
-            </section>
-            {/* Additional Transcript Information */}
-            <section className="space-y-6">
-              <div>
-                <h2 className="text-xl font-semibold">
-                  Additional Information
-                </h2>
-
-                <p className="mt-1 text-sm text-gray-500">
-                  Enter the student's conduct, attendance, and completed grade.
-                </p>
-              </div>
-
-              <div className="grid gap-5 md:grid-cols-4">
-                {/* Conduct / Work Ethics */}
-                <div>
-                  <label
-                    htmlFor="conduct"
-                    className="mb-2 block text-sm font-medium"
-                  >
-                    Conduct / Work Ethics
-                  </label>
-
-                  <input
-                    id="conduct"
-                    type="text"
-                    value={transcript.conduct}
-                    onChange={(event) =>
-                      updateTranscript("conduct", event.target.value)
-                    }
-                    placeholder="e.g. Excellent"
-                    className="w-full rounded-md border p-3 outline-none focus:ring-2 focus:ring-black"
-                  />
-                </div>
-
-                {/* Absence */}
-                <div>
-                  <label
-                    htmlFor="absence"
-                    className="mb-2 block text-sm font-medium"
-                  >
-                    Absence
-                  </label>
-
-                  <input
-                    id="absence"
-                    type="number"
-                    min="0"
-                    value={transcript.absence}
-                    onChange={(event) =>
-                      updateTranscript("absence", event.target.value)
-                    }
-                    placeholder="Number of absences"
-                    className="w-full rounded-md border p-3 outline-none focus:ring-2 focus:ring-black"
-                  />
-                </div>
-
-                {/* Completed Grade */}
-                <div>
-                  <label
-                    htmlFor="completedGrade"
-                    className="mb-2 block text-sm font-medium"
-                  >
-                    Completed Grade
-                  </label>
-
-                  <input
-                    id="completedGrade"
-                    type="text"
-                    value={transcript.completedGrade}
-                    onChange={(event) =>
-                      updateTranscript("completedGrade", event.target.value)
-                    }
-                    placeholder="e.g. Grade 12"
-                    className="w-full rounded-md border p-3 outline-none focus:ring-2 focus:ring-black"
-                  />
-                </div>
-                {/* Rank */}
-                <div>
-                  <label
-                    htmlFor="rank"
-                    className="mb-2 block text-sm font-medium"
-                  >
-                    Rank
-                  </label>
-
-                  <input
-                    id="rank"
-                    type="number"
-                    min="1"
-                    value={transcript.rank}
-                    onChange={(event) =>
-                      updateTranscript("rank", event.target.value)
-                    }
-                    placeholder="e.g. 3"
-                    className="w-full rounded-md border p-3 outline-none focus:ring-2 focus:ring-black"
-                  />
-                </div>
+              <div className="flex justify-end">
+                <button
+                  type="button"
+                  onClick={handleSaveTranscript}
+                  disabled={loading}
+                  className="rounded-md bg-black cursor-pointer px-6 py-3 font-medium text-white hover:bg-stone-900 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  {loading ? "Saving Transcript..." : "Save Transcript"}
+                </button>
               </div>
             </section>
           </div>
         </section>
         <TranscriptPreview transcript={transcript} />
-        <TranscriptDocument
-  transcript={transcript}
-  qrUrl={null}
-/>
+        <TranscriptDocument transcript={transcript} qrUrl={null} />
 
-        {result && <ResultCard image={result} />}
-
-        <ImageList
-          images={images}
-          loading={loadingImages}
+        <TranscriptList
+          transcripts={transcripts}
+          loading={loadingTranscripts}
           onDelete={handleDelete}
         />
       </div>
@@ -529,86 +475,34 @@ export default function AdminPage() {
   );
 }
 
-function ResultCard({ image }) {
-  const qrUrl = `/api/images/${image.referenceId}/qr`;
-
-  const imageUrl = `/ref/${image.referenceId}.${getExtension(image.mimeType)}`;
-
+function TranscriptList({ transcripts, loading, onDelete }) {
   return (
     <section className="rounded-xl border bg-white p-6 shadow-sm">
-      <h2 className="text-xl font-semibold">Image uploaded successfully</h2>
-
-      <div className="mt-6 grid gap-6 md:grid-cols-2">
+      <div className="flex items-center justify-between">
         <div>
-          <p className="mb-3 text-sm font-medium">QR Code</p>
-
-          <div className="flex justify-center rounded-lg bg-gray-100 p-6">
-            <img
-              src={qrUrl}
-              alt={`QR code for ${image.referenceId}`}
-              className="h-64 w-64"
-            />
-          </div>
-        </div>
-
-        <div className="space-y-4">
-          <p>
-            <strong>Reference ID:</strong> {image.referenceId}
-          </p>
-
-          <p>
-            <strong>File:</strong> {image.originalName}
-          </p>
-
-          <p>
-            <strong>Size:</strong> {(image.size / 1024).toFixed(1)} KB
-          </p>
-
-          <div className="flex flex-col gap-3">
-            <a
-              href={imageUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="rounded-md border px-4 py-3 text-center font-medium"
-            >
-              View Image
-            </a>
-
-            <a
-              href={qrUrl}
-              download={`qr-${image.referenceId}.png`}
-              className="rounded-md bg-black px-4 py-3 text-center font-medium text-white"
-            >
-              Download QR
-            </a>
-          </div>
-        </div>
-      </div>
-    </section>
-  );
-}
-
-function ImageList({ images, loading, onDelete }) {
-  return (
-    <section className="rounded-xl border bg-white p-6 shadow-sm">
-      <div className="flex items-center justify-between w-full">
-        <div>
-          <h2 className="text-xl font-semibold">Uploaded Images</h2>
+          <h2 className="text-xl font-semibold">Created Transcripts</h2>
 
           <p className="mt-1 text-sm text-gray-500">
-            {images.length} image{images.length === 1 ? "" : "s"}
+            {transcripts.length} transcript
+            {transcripts.length === 1 ? "" : "s"} created
           </p>
         </div>
       </div>
 
       {loading ? (
-        <p className="mt-6 text-gray-500">Loading images...</p>
-      ) : images.length === 0 ? (
-        <p className="mt-6 text-gray-500">No images uploaded yet.</p>
+        <p className="mt-6 text-gray-500">Loading transcripts...</p>
+      ) : transcripts.length === 0 ? (
+        <div className="mt-6 rounded-lg border border-dashed p-8 text-center">
+          <p className="text-gray-500">No transcripts have been created yet.</p>
+        </div>
       ) : (
-        <div className="mt-6 space-y-4">
-          {images.map((image) => (
-            <ImageRow key={image.id} image={image} onDelete={onDelete} />
+        <div className="mt-6 space-y-3">
+          {transcripts.map((transcript) => (
+            <TranscriptRow
+              key={transcript.id}
+              transcript={transcript}
+              onDelete={onDelete}
+            />
           ))}
         </div>
       )}
@@ -616,41 +510,42 @@ function ImageList({ images, loading, onDelete }) {
   );
 }
 
-function ImageRow({ image, onDelete }) {
-  const imagePageUrl = `/ref/${image.referenceId}.${getExtension(image.mimeType)}`;
+function TranscriptRow({ transcript, onDelete }) {
+  const transcriptImageUrl = `/ref/${transcript.referenceId}`;
 
-  const imageFileUrl = `/api/images/${image.referenceId}.${getExtension(
-    image.mimeType,
-  )}`;
-  const qrUrl = `/api/images/${image.referenceId}/qr`;
+  const qrUrl = `/api/transcripts/${transcript.referenceId}/qr`;
+
   return (
-    <div className="flex flex-col gap-4 rounded-lg border p-4 md:flex-row md:items-center">
-      <img
-        src={imageFileUrl}
-        alt={image.studentName || image.originalName}
-        className="h-24 w-24 rounded-md object-cover"
-      />
+    <div className="flex flex-col gap-4 rounded-lg border bg-white p-4 md:flex-row md:items-center">
+      {/* TRANSCRIPT IMAGE */}
+      <div className="shrink-0">
+        <img
+          src={transcriptImageUrl}
+          alt={`Transcript for ${transcript.studentName}`}
+          className="h-24 w-20 rounded-md border object-cover"
+        />
+      </div>
 
+      {/* INFORMATION */}
       <div className="min-w-0 flex-1">
-        <p className="truncate font-medium">
-          <strong>Student:</strong> {image.studentName || image.originalName}
-        </p>
+        <p className="truncate font-semibold">{transcript.studentName}</p>
 
         <p className="mt-1 text-sm text-gray-500">
-          Reference: {image.referenceId}
+          Reference: {transcript.referenceId}
         </p>
 
         <p className="text-sm text-gray-500">
-          {(image.size / 1024).toFixed(1)} KB
+          Student ID: {transcript.studentId || "—"}
         </p>
       </div>
 
+      {/* ACTIONS */}
       <div className="flex flex-wrap gap-2">
         <a
-          href={imagePageUrl}
+          href={transcriptImageUrl}
           target="_blank"
           rel="noopener noreferrer"
-          className="rounded-md border hover:bg-gray-100 px-3 py-2 text-sm"
+          className="rounded-md border px-3 py-2 text-sm hover:bg-gray-100"
         >
           View
         </a>
@@ -659,15 +554,15 @@ function ImageRow({ image, onDelete }) {
           href={qrUrl}
           target="_blank"
           rel="noopener noreferrer"
-          className="rounded-md border px-3  hover:bg-gray-100 py-2 text-sm"
+          className="rounded-md border px-3 py-2 text-sm hover:bg-gray-100"
         >
-          QR
+          QR Code
         </a>
 
         <button
           type="button"
-          onClick={() => onDelete(image.referenceId)}
-          className="rounded-md bg-red-600 hover:bg-red-500 px-3 py-2 text-sm cursor-pointer text-white"
+          onClick={() => onDelete(transcript.referenceId)}
+          className="rounded-md bg-red-600 px-3 py-2 text-sm text-white hover:bg-red-500"
         >
           Delete
         </button>
