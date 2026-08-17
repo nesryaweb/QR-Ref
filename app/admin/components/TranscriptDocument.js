@@ -41,16 +41,12 @@ export default function TranscriptDocument({ transcript, qrUrl }) {
         </div>
 
         {/* SCHOOL HEADER */}
-        <div className="flex items-center justify-center border-r border-black text-center">
-          <div>
-            <div className="text-xl font-bold">
-              SCHOOL HEADER
-            </div>
-
-            <div className="mt-2 text-sm">
-              School branding will be placed here
-            </div>
-          </div>
+        <div className="flex items-center justify-center border-r border-black p-4">
+          <img
+            src="/transcript/school-header.png"
+            alt="School Header"
+            className="max-h-[160px] max-w-full object-contain"
+          />
         </div>
 
         {/* STUDENT PHOTO */}
@@ -74,25 +70,13 @@ export default function TranscriptDocument({ transcript, qrUrl }) {
       ========================================= */}
 
       <div className="grid grid-cols-4 border-x border-b border-black">
-        <InfoField
-          label="Name"
-          value={transcript.studentName}
-        />
+        <InfoField label="Name" value={transcript.studentName} />
 
-        <InfoField
-          label="Age"
-          value={transcript.age}
-        />
+        <InfoField label="Age" value={transcript.age} />
 
-        <InfoField
-          label="Gender"
-          value={transcript.gender}
-        />
+        <InfoField label="Gender" value={transcript.gender} />
 
-        <InfoField
-          label="Stream"
-          value={transcript.stream}
-        />
+        <InfoField label="Stream" value={transcript.stream} />
       </div>
 
       {/* =========================================
@@ -145,8 +129,7 @@ export default function TranscriptDocument({ transcript, qrUrl }) {
 
                 {grades.map((grade, gradeIndex) => {
                   const subject = grade.subjects?.find(
-                    (item) =>
-                      item.name?.trim() === subjectName,
+                    (item) => item.name?.trim() === subjectName,
                   );
 
                   return (
@@ -166,9 +149,7 @@ export default function TranscriptDocument({ transcript, qrUrl }) {
 
             {/* TOTAL */}
             <tr>
-              <td className="border border-black p-2 font-semibold">
-                Total
-              </td>
+              <td className="border border-black p-2 font-semibold">Total</td>
 
               {grades.map((grade, index) => {
                 const totals = calculateGradeTotals(grade);
@@ -189,9 +170,7 @@ export default function TranscriptDocument({ transcript, qrUrl }) {
 
             {/* AVERAGE */}
             <tr>
-              <td className="border border-black p-2 font-semibold">
-                Average
-              </td>
+              <td className="border border-black p-2 font-semibold">Average</td>
 
               {grades.map((grade, index) => {
                 const totals = calculateGradeTotals(grade);
@@ -218,25 +197,13 @@ export default function TranscriptDocument({ transcript, qrUrl }) {
       ========================================= */}
 
       <div className="grid grid-cols-4 border-x border-b border-black">
-        <InfoField
-          label="Rank"
-          value={transcript.rank}
-        />
+        <InfoField label="Rank" value={transcript.rank} />
 
-        <InfoField
-          label="Conduct / Work Ethics"
-          value={transcript.conduct}
-        />
+        <InfoField label="Conduct / Work Ethics" value={transcript.conduct} />
 
-        <InfoField
-          label="Absence"
-          value={transcript.absence}
-        />
+        <InfoField label="Absence" value={transcript.absence} />
 
-        <InfoField
-          label="Completed Grade"
-          value={transcript.completedGrade}
-        />
+        <InfoField label="Completed Grade" value={transcript.completedGrade} />
       </div>
     </div>
   );
@@ -245,13 +212,9 @@ export default function TranscriptDocument({ transcript, qrUrl }) {
 function InfoField({ label, value }) {
   return (
     <div className="border-r border-black p-3 last:border-r-0">
-      <div className="text-xs font-semibold">
-        {label}
-      </div>
+      <div className="text-xs font-semibold">{label}</div>
 
-      <div className="mt-1 min-h-[24px] font-medium">
-        {value || "-"}
-      </div>
+      <div className="mt-1 min-h-[24px] font-medium">{value || "-"}</div>
     </div>
   );
 }
