@@ -1,131 +1,16 @@
 "use client";
 
+import { Fragment } from "react";
 import { calculateAverage, calculateGradeTotals } from "@/lib/transcript";
-import { Fragment } from "react/jsx-runtime";
 
 export default function TranscriptPreview({ transcript }) {
-  return (
-    <section className="rounded-xl border bg-white p-6 shadow-sm">
-      <div className="mb-6">
-        <h2 className="text-xl font-semibold">Transcript Preview</h2>
-
-        <p className="mt-1 text-sm text-gray-500">
-          This is a preview of the transcript that will be generated.
-        </p>
-      </div>
-
-      <div >
-        <div className="min-w-full border bg-white">
-          {/* =========================================
-              TOP SECTION
-          ========================================= */}
-
-          <div className="grid grid-cols-[140px_1fr_180px] border-b">
-            {/* QR */}
-            <div className="flex h-40 items-center justify-center border-r">
-              <div className="flex h-24 w-24 items-center justify-center border-2 border-dashed text-sm text-gray-500">
-                QR
-              </div>
-            </div>
-
-            {/* HEADER */}
-            <div className="flex h-40 items-center justify-center border-r text-center">
-              <div>
-                <p className="text-lg font-bold">SCHOOL HEADER</p>
-
-                <p className="mt-2 text-sm text-gray-500">
-                  School branding will be placed here
-                </p>
-              </div>
-            </div>
-
-            {/* STUDENT PHOTO */}
-            <div className="flex h-40 items-center justify-center">
-              {transcript.photo ? (
-                <img
-                  src={URL.createObjectURL(transcript.photo)}
-                  alt={transcript.studentName || "Student"}
-                  className="h-32 w-28 object-cover"
-                />
-              ) : (
-                <div className="flex h-32 w-28 items-center justify-center border-2 border-dashed text-sm text-gray-500">
-                  Student Photo
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* =========================================
-              STUDENT INFORMATION
-          ========================================= */}
-
-          <div className="grid grid-cols-4 border-b">
-            <InfoField label="Name" value={transcript.studentName} />
-
-            <InfoField label="Age" value={transcript.age} />
-
-            <InfoField label="Gender" value={transcript.gender} />
-
-            <InfoField label="Stream" value={transcript.stream} />
-          </div>
-
-          {/* =========================================
-              TRANSCRIPT TABLE
-          ========================================= */}
-
-          <TranscriptTable transcript={transcript} />
-
-          {/* =========================================
-              ADDITIONAL INFORMATION
-          ========================================= */}
-
-          <div className="border-t">
-            <div className="grid grid-cols-4">
-              <InfoField label="Rank" value={transcript.rank} />
-
-              <InfoField
-                label="Conduct / Work Ethics"
-                value={transcript.conduct}
-              />
-
-              <InfoField label="Absence" value={transcript.absence} />
-
-              <InfoField
-                label="Completed Grade"
-                value={transcript.completedGrade}
-              />
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-  );
-}
-
-/* =====================================================
-   TRANSCRIPT TABLE
-===================================================== */
-
-function TranscriptTable({ transcript }) {
   const grades = transcript.grades || [];
 
   /*
-   * Collect every subject name from every grade.
+   * Collect all unique subjects from all grades.
    *
-   * Example:
-   *
-   * Grade 9:
-   * English
-   * Math
-   *
-   * Grade 10:
-   * English
-   * Biology
-   *
-   * Result:
-   * English
-   * Math
-   * Biology
+   * This allows Grade 9 to have different subjects from
+   * Grade 10, while still keeping one unified transcript table.
    */
   const subjectNames = [];
 
@@ -139,153 +24,393 @@ function TranscriptTable({ transcript }) {
     });
   });
 
-  if (grades.length === 0) {
-    return (
-      <div className="border-b p-8 text-center text-gray-500">
-        No academic records added yet.
-      </div>
-    );
-  }
-
   return (
-    <div className="border-b">
-      <table className="w-full border-collapse">
-        {/* =========================================
-            TABLE HEADER
-        ========================================= */}
+    <section className="rounded-xl border bg-white p-6 shadow-sm">
+      <div className="mb-6">
+        <h2 className="text-xl font-semibold">Transcript Preview</h2>
 
-        <thead>
-          {/* Grade names */}
-          <tr className="bg-gray-50">
-            <th rowSpan="2" className="border p-2 text-left">
-              Subject
-            </th>
+        <p className="mt-1 text-sm text-gray-500">
+          Preview of the final student transcript.
+        </p>
+      </div>
 
-            {grades.map((grade, index) => (
-              <th key={index} colSpan="2" className="border p-2 text-center">
-                <div className="font-semibold">
-                  {grade.gradeName || "Grade"}
+      {/* DOCUMENT */}
+      <div className="overflow-x-auto">
+        <div className="mx-auto w-full bg-white p-6 text-black">
+          {/* =========================================
+              TOP HEADER
+          ========================================= */}
+
+          <div className="grid grid-cols-[150px_1fr_150px] items-start">
+            {/* QR */}
+            <div className="flex flex-col items-center justify-start">
+              <div className="flex h-28 w-28 items-center justify-center border-2 border-dashed text-sm text-gray-500">
+                QR
+              </div>
+
+              <p className="mt-2 text-xs">
+                {transcript.studentName || "Student"}
+              </p>
+            </div>
+
+            {/* SCHOOL HEADER */}
+            <div className="text-center">
+              <h1 className="text-3xl font-bold">Gibson School Systems</h1>
+
+              <p className="mt-1 text-lg font-semibold italic">
+                Gibson Youth Academy and Gibson Preparatory College
+              </p>
+
+              <p className="text-xs">Making Young People Strong People</p>
+
+              <p className="mt-3 text-xs font-semibold">
+                Central Administrative Office, Phones: 011-662-8312 or
+                011-661-0150
+              </p>
+
+              <p className="text-xs font-semibold">
+                P.O. Box 15564 Addis Ababa, Ethiopia.
+              </p>
+
+              <p className="text-xs font-semibold">
+                https://gyaschool.com &nbsp; info@gyaschool.net
+              </p>
+
+              <h2 className="mt-3 text-base font-bold underline">
+                Student Transcript
+              </h2>
+            </div>
+
+            {/* PHOTO */}
+            <div className="flex flex-col items-center">
+              {transcript.photo ? (
+                <img
+                  src={URL.createObjectURL(transcript.photo)}
+                  alt={transcript.studentName || "Student"}
+                  className="h-28 w-24 object-cover"
+                />
+              ) : (
+                <div className="flex h-28 w-24 items-center justify-center border-2 border-dashed text-xs text-gray-500">
+                  Student Photo
                 </div>
+              )}
 
-                {grade.academicYear && (
-                  <div className="text-xs font-normal text-gray-500">
-                    {grade.academicYear}
-                  </div>
-                )}
-              </th>
-            ))}
-          </tr>
-
-          {/* Semester names */}
-          <tr className="bg-gray-50">
-            {grades.map((grade, index) => (
-              <Fragment key={index}>
-                <th className="border p-2 text-center text-xs">1st Sem</th>
-
-                <th className="border p-2 text-center text-xs">2nd Sem</th>
-              </Fragment>
-            ))}
-          </tr>
-        </thead>
-
-        {/* =========================================
-            SUBJECT ROWS
-        ========================================= */}
-
-        <tbody>
-          {subjectNames.map((subjectName) => (
-            <tr key={subjectName}>
-              {/* Subject name */}
-              <td className="border p-2 font-medium">{subjectName}</td>
-
-              {/* Grades */}
-              {grades.map((grade, gradeIndex) => {
-                const subject = grade.subjects?.find(
-                  (item) => item.name?.trim() === subjectName,
-                );
-
-                return (
-                  <Fragment key={gradeIndex}>
-                    {/* 1st semester */}
-                    <td className="border p-2 text-center">
-                      {subject?.firstSemester || "-"}
-                    </td>
-
-                    {/* 2nd semester */}
-                    <td className="border p-2 text-center">
-                      {subject?.secondSemester || "-"}
-                    </td>
-                  </Fragment>
-                );
-              })}
-            </tr>
-          ))}
+              <p className="mt-1 text-center text-[10px] leading-tight">
+                Note: the photo is
+                <br />
+                an actual photo,
+                <br />
+                not a scanned
+                <br />
+                photo.
+              </p>
+            </div>
+          </div>
 
           {/* =========================================
-              TOTAL
+              STUDENT INFORMATION
           ========================================= */}
 
-          <tr className="border-t-2 border-black">
-            <td className="border p-2 font-semibold">Total</td>
+          <div className="mt-3 grid grid-cols-4 border-b border-black text-sm">
+            <InfoLine
+              label="Name of the Student"
+              value={transcript.studentName}
+            />
 
-            {grades.map((grade, gradeIndex) => {
-              const totals = calculateGradeTotals(grade);
+            <InfoLine label="Age" value={transcript.age} />
 
-              return (
-                <Fragment key={gradeIndex}>
-                  <td className="border p-2 text-center font-semibold">
-                    {totals.firstSemesterTotal || "-"}
-                  </td>
+            <InfoLine label="Gender" value={transcript.gender} />
 
-                  <td className="border p-2 text-center font-semibold">
-                    {totals.secondSemesterTotal || "-"}
-                  </td>
-                </Fragment>
-              );
-            })}
-          </tr>
+            <InfoLine label="Stream" value={transcript.stream} />
+          </div>
 
           {/* =========================================
-              AVERAGE
+              TRANSCRIPT TABLE
           ========================================= */}
 
-          <tr>
-            <td className="border p-2 font-semibold">Average</td>
+          <div className="mt-0">
+            {grades.length === 0 ? (
+              <div className="border border-black p-10 text-center text-gray-500">
+                Add grades and subjects to display the transcript.
+              </div>
+            ) : (
+              <table className="w-full table-fixed border-collapse text-[10px]">
+                <thead>
+                  {/* GRADE HEADER */}
+                  <tr>
+                    <th
+                      rowSpan={2}
+                      className="w-[220px] border border-black px-2 py-1 text-center font-semibold"
+                    >
+                      Subjects
+                    </th>
 
-            {grades.map((grade, gradeIndex) => {
-              const totals = calculateGradeTotals(grade);
+                    {grades.map((grade, index) => (
+                      <th
+                        key={index}
+                        colSpan={3}
+                        className="border border-black px-1 py-1"
+                      >
+                        <div className="font-bold">
+                          {grade.gradeName || "Grade"}
+                        </div>
 
-              return (
-                <Fragment key={gradeIndex}>
-                  <td className="border p-2 text-center font-semibold">
-                    {totals.firstSemesterAverage || "-"}
-                  </td>
+                        <div className="font-normal">
+                          Aca. Year: {grade.academicYear || "-"}
+                        </div>
+                      </th>
+                    ))}
+                  </tr>
 
-                  <td className="border p-2 text-center font-semibold">
-                    {totals.secondSemesterAverage || "-"}
-                  </td>
-                </Fragment>
-              );
-            })}
-          </tr>
-        </tbody>
-      </table>
-    </div>
+                  {/* SEMESTER HEADER */}
+                  <tr>
+                    {grades.map((grade, index) => (
+                      <Fragment key={index}>
+                        <th className="border border-black px-1 py-1 font-normal">
+                          1st
+                          <br />
+                          Sem
+                        </th>
+
+                        <th className="border border-black px-1 py-1 font-normal">
+                          2nd
+                          <br />
+                          Sem
+                        </th>
+
+                        <th className="border border-black px-1 py-1 font-normal">
+                          Average
+                        </th>
+                      </Fragment>
+                    ))}
+                  </tr>
+                </thead>
+
+                {/* =====================================
+                    SUBJECTS
+                ===================================== */}
+
+                <tbody>
+                  {subjectNames.map((subjectName) => (
+                    <tr key={subjectName}>
+                      <td className="border border-black px-1 py-[2px] font-medium">
+                        {subjectName}
+                      </td>
+
+                      {grades.map((grade, gradeIndex) => {
+                        const subject = grade.subjects?.find(
+                          (item) => item.name?.trim() === subjectName,
+                        );
+
+                        const average = subject
+                          ? calculateAverage(
+                              subject.firstSemester,
+                              subject.secondSemester,
+                            )
+                          : "";
+
+                        return (
+                          <Fragment key={gradeIndex}>
+                            <td className="border border-black px-1 py-[2px] text-center">
+                              {subject?.firstSemester || "-"}
+                            </td>
+
+                            <td className="border border-black px-1 py-[2px] text-center">
+                              {subject?.secondSemester || "-"}
+                            </td>
+
+                            <td className="border border-black px-1 py-[2px] text-center">
+                              {average === "" ? "-" : average}
+                            </td>
+                          </Fragment>
+                        );
+                      })}
+                    </tr>
+                  ))}
+
+                  {/* =====================================
+                      TOTAL
+                  ===================================== */}
+
+                  <tr>
+                    <td className="border border-black px-1 py-[2px] font-bold">
+                      Total
+                    </td>
+
+                    {grades.map((grade, index) => {
+                      const totals = calculateGradeTotals(grade);
+
+                      return (
+                        <Fragment key={index}>
+                          <td className="border border-black text-center font-bold">
+                            {totals.firstSemesterTotal || "-"}
+                          </td>
+
+                          <td className="border border-black text-center font-bold">
+                            {totals.secondSemesterTotal || "-"}
+                          </td>
+
+                          <td className="border border-black text-center font-bold">
+                            {totals.overallAverage || "-"}
+                          </td>
+                        </Fragment>
+                      );
+                    })}
+                  </tr>
+
+                  {/* =====================================
+                      AVERAGE
+                  ===================================== */}
+
+                  <tr>
+                    <td className="border border-black px-1 py-[2px] font-bold">
+                      Average
+                    </td>
+
+                    {grades.map((grade, index) => {
+                      const totals = calculateGradeTotals(grade);
+
+                      return (
+                        <Fragment key={index}>
+                          <td className="border border-black text-center font-bold">
+                            {totals.firstSemesterAverage || "-"}
+                          </td>
+
+                          <td className="border border-black text-center font-bold">
+                            {totals.secondSemesterAverage || "-"}
+                          </td>
+
+                          <td className="border border-black text-center font-bold">
+                            {totals.overallAverage || "-"}
+                          </td>
+                        </Fragment>
+                      );
+                    })}
+                  </tr>
+
+                  {/* =====================================
+                      RANK
+                  ===================================== */}
+
+                  <tr>
+                    <td className="border border-black px-1 py-[2px] font-bold">
+                      Rank
+                    </td>
+
+                    {grades.map((grade, index) => (
+                      <td
+                        key={index}
+                        colSpan={3}
+                        className="border border-black text-center"
+                      >
+                        -
+                      </td>
+                    ))}
+                  </tr>
+
+                  {/* =====================================
+                      CONDUCT
+                  ===================================== */}
+
+                  <tr>
+                    <td className="border border-black px-1 py-[2px] font-bold">
+                      Conduct/Work Ethic
+                    </td>
+
+                    {grades.map((grade, index) => (
+                      <td
+                        key={index}
+                        colSpan={3}
+                        className="border border-black text-center"
+                      >
+                        {transcript.conduct || "-"}
+                      </td>
+                    ))}
+                  </tr>
+
+                  {/* =====================================
+                      ABSENCES
+                  ===================================== */}
+
+                  <tr>
+                    <td className="border border-black px-1 py-[2px] font-bold">
+                      Absences
+                    </td>
+
+                    {grades.map((grade, index) => (
+                      <td
+                        key={index}
+                        colSpan={3}
+                        className="border border-black text-center"
+                      >
+                        {transcript.absence || "-"}
+                      </td>
+                    ))}
+                  </tr>
+                </tbody>
+              </table>
+            )}
+          </div>
+
+          {/* =========================================
+              COMPLETED GRADE
+          ========================================= */}
+
+          <p className="mt-2 text-xs">
+            He/She has completed grade{" "}
+            <span className="font-semibold underline">
+              {transcript.completedGrade || "________________"}
+            </span>
+          </p>
+
+          {/* =========================================
+              SIGNATURES
+          ========================================= */}
+
+          <div className="mt-2 grid grid-cols-2 text-xs">
+            <div>
+              <p>Record Keeper's Name ______________________________</p>
+
+              <p>Signature: ______________________________</p>
+
+              <p>Date: ______________________________</p>
+            </div>
+
+            <div>
+              <p>Site Director's Name ______________________________</p>
+
+              <p>Signature: ______________________________</p>
+
+              <p>Date: ______________________________</p>
+            </div>
+          </div>
+
+          {/* =========================================
+              FOOTER
+          ========================================= */}
+
+          <div className="mt-4 border-t pt-2 text-center text-[10px] font-semibold italic">
+            Do not accept scanned or electronic versions of this document unless
+            sent directly from Gibson School System
+          </div>
+        </div>
+      </div>
+    </section>
   );
 }
 
-/* =====================================================
-   INFO FIELD
-===================================================== */
+/* =========================================
+   STUDENT INFO LINE
+========================================= */
 
-function InfoField({ label, value }) {
+function InfoLine({ label, value }) {
   return (
-    <div className="border-r p-3 last:border-r-0">
-      <span className="text-xs font-semibold uppercase text-gray-500">
-        {label}
-      </span>
+    <div className="flex items-end gap-2 px-2 py-1">
+      <span className="font-semibold whitespace-nowrap">{label}:</span>
 
-      <p className="mt-1 min-h-6 font-medium">{value || "-"}</p>
+      <span className="min-w-0 flex-1 border-b border-black font-medium">
+        {value || ""}
+      </span>
     </div>
   );
 }
