@@ -1,43 +1,49 @@
 import { prisma } from "@/lib/db";
-import { createEditedImage } from "@/lib/image-editor";
+import fs from "fs/promises";
+import path from "path";
 
 export async function GET(request, { params }) {
   try {
     const { reference } = await params;
 
-    const referenceId = reference.replace(/\.(png|jpe?g|webp)$/i, "");
-
-    const image = await prisma.image.findUnique({
+    const transcript = await prisma.transcript.findUnique({
       where: {
-        referenceId,
+        referenceId: reference,
+      },
+      select: {
+        referenceId: true,
       },
     });
 
-    if (!image) {
-      return new Response("Image not found", {
+    if (!transcript) {
+      return new Response("Transcript not found.", {
         status: 404,
       });
     }
 
-    const editedImage = await createEditedImage({
-      imageBuffer: Buffer.from(image.data),
-      referenceId: image.referenceId,
-      studentName: image.studentName,
-    });
+    const imagePath = path.join(
+      process.cwd(),
+      "public",
+      "transcripts",
+      reference,
+      "transcript.png",
+    );
 
-    return new Response(editedImage, {
+    const imageBuffer = await fs.readFile(imagePath);
+
+    return new Response(imageBuffer, {
       status: 200,
       headers: {
-        "Content-Type": image.mimeType,
-        "Content-Disposition": "inline",
-        "Cache-Control": "no-store",
+        "Content-Type": "image/png",
+        "Content-Length": imageBuffer.length.toString(),
+        "Cache-Control": "public, max-age=31536000, immutable",
       },
     });
   } catch (error) {
-    console.error("Public edited image failed:", error);
+    console.error("Public transcript image failed:", error);
 
-    return new Response("Failed to generate edited image", {
-      status: 500,
+    return new Response("Transcript image not found.", {
+      status: 404,
     });
   }
 }
