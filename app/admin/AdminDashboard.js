@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { signOut } from "next-auth/react";
+import TranscriptDocument from "./components/TranscriptDocument"; 
 import {
   createEmptyTranscript,
   createEmptyGrade,
@@ -421,7 +422,7 @@ export default function AdminPage() {
                 </p>
               </div>
 
-              <div className="grid gap-5 md:grid-cols-3">
+              <div className="grid gap-5 md:grid-cols-4">
                 {/* Conduct / Work Ethics */}
                 <div>
                   <label
@@ -485,11 +486,36 @@ export default function AdminPage() {
                     className="w-full rounded-md border p-3 outline-none focus:ring-2 focus:ring-black"
                   />
                 </div>
+                {/* Rank */}
+                <div>
+                  <label
+                    htmlFor="rank"
+                    className="mb-2 block text-sm font-medium"
+                  >
+                    Rank
+                  </label>
+
+                  <input
+                    id="rank"
+                    type="number"
+                    min="1"
+                    value={transcript.rank}
+                    onChange={(event) =>
+                      updateTranscript("rank", event.target.value)
+                    }
+                    placeholder="e.g. 3"
+                    className="w-full rounded-md border p-3 outline-none focus:ring-2 focus:ring-black"
+                  />
+                </div>
               </div>
             </section>
           </div>
         </section>
         <TranscriptPreview transcript={transcript} />
+        <TranscriptDocument
+  transcript={transcript}
+  qrUrl={null}
+/>
 
         {result && <ResultCard image={result} />}
 
