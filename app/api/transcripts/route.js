@@ -175,15 +175,28 @@ export async function POST(request) {
     console.log("STARTING FILE GENERATION FOR:", savedTranscript.referenceId);
 
     // =========================================
+    // GENERATED FILES
+    //
+    // Declare this OUTSIDE the inner try block
+    // so it can also be used in the success response.
+    // =========================================
+
+    let generatedFiles;
+
+    // =========================================
     // GENERATE PNG + PDF
     // =========================================
 
     try {
-      const generatedFiles = await generateTranscriptFiles(
+      generatedFiles = await generateTranscriptFiles(
         savedTranscript.referenceId,
       );
 
       console.log("TRANSCRIPT FILES GENERATED:", generatedFiles);
+
+      // =========================================
+      // SAVE FILE URLS TO DATABASE
+      // =========================================
 
       await prisma.transcript.update({
         where: {
@@ -194,6 +207,8 @@ export async function POST(request) {
           pdfUrl: generatedFiles.pdfUrl,
         },
       });
+
+      console.log("TRANSCRIPT FILE URLS SAVED:", savedTranscript.referenceId);
     } catch (generationError) {
       console.error("========== FILE GENERATION ERROR ==========");
       console.error(generationError);
@@ -208,15 +223,25 @@ export async function POST(request) {
               ? generationError.stack || generationError.message
               : String(generationError),
         },
-        { status: 500 },
+        {
+          status: 500,
+        },
       );
+    }
+
+    // =========================================
+    // SAFETY CHECK
+    // =========================================
+
+    if (!generatedFiles) {
+      throw new Error("Transcript files were not generated.");
     }
 
     // =========================================
     // SUCCESS
     // =========================================
 
-    console.log("TRANSCRIPT FILES GENERATED:", savedTranscript.referenceId);
+    console.log("TRANSCRIPT COMPLETELY SAVED:", savedTranscript.referenceId);
 
     return Response.json(
       {
@@ -234,7 +259,9 @@ export async function POST(request) {
           pdfUrl: generatedFiles.pdfUrl,
         },
       },
-      { status: 201 },
+      {
+        status: 201,
+      },
     );
   } catch (error) {
     console.error("Transcript save failed:", error);
@@ -271,7 +298,7 @@ export async function GET() {
         stream: true,
         createdAt: true,
         pngUrl: true,
-  pdfUrl: true,
+        pdfUrl: true,
       },
     });
 
@@ -349,25 +376,16 @@ export async function DELETE(request) {
     });
 
     // =========================================
-    // DELETE GENERATED FILES
-    //
-    // This matches the directory used by
-    // generateTranscriptFiles()
-    //
-    // public/
-    //   transcripts/
-    //     referenceId/
-    //       transcript.png
-    //       transcript.pdf
+    // DELETE GENERATED FILES FROM VERCEL BLOB
     // =========================================
 
     if (transcript.pngUrl) {
-  await del(transcript.pngUrl);
-}
+      await del(transcript.pngUrl);
+    }
 
-if (transcript.pdfUrl) {
-  await del(transcript.pdfUrl);
-}
+    if (transcript.pdfUrl) {
+      await del(transcript.pdfUrl);
+    }
 
     console.log("TRANSCRIPT DELETED:", referenceId);
 
