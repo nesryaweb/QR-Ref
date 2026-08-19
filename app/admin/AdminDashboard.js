@@ -624,18 +624,21 @@ export default function AdminPage() {
                 onChange={(event) => {
                   const selectedPhoto = event.target.files?.[0] || null;
 
+                  if (!selectedPhoto) {
+                    setPhoto(null);
+                    updateTranscript("photo", null);
+                    updateTranscript("photoSrc", null);
+                    return;
+                  }
+
                   setPhoto(selectedPhoto);
 
                   updateTranscript("photo", selectedPhoto);
 
-                  if (selectedPhoto) {
-                    updateTranscript(
-                      "photoSrc",
-                      URL.createObjectURL(selectedPhoto),
-                    );
-                  } else {
-                    updateTranscript("photoSrc", null);
-                  }
+                  updateTranscript(
+                    "photoSrc",
+                    URL.createObjectURL(selectedPhoto),
+                  );
                 }}
                 className="block w-full rounded-md border p-3 file:mr-4 file:rounded-md file:border-0 file:bg-gray-200 file:px-4 file:py-2 file:text-sm file:font-medium cursor-pointer hover:file:bg-gray-300"
               />
