@@ -4,15 +4,42 @@ import { Fragment } from "react";
 import { calculateAverage, calculateGradeTotals } from "@/lib/transcript";
 import CompletedGrades from "./CompletedGrades";
 
-export default function TranscriptDocument({ transcript, qrUrl }) {
+export default function TranscriptDocument({
+  transcript,
+  qrUrl,
+  photoUrl,
+  schoolHeaderUrl,
+}) {
   const grades = transcript.grades || [];
 
-  /*
-   * Collect all unique subjects from all grades.
-   *
-   * This allows Grade 9 to have different subjects from
-   * Grade 10, while still keeping one unified transcript table.
-   */
+  // =========================================================
+  // DISPLAY AT LEAST 4 GRADES
+  // =========================================================
+  //
+  // These extra grades are ONLY for the document display.
+  // They are NOT added to transcript.grades.
+  // They will NOT be saved.
+  //
+  const displayGrades = [...grades];
+
+  while (displayGrades.length < 4) {
+    displayGrades.push({
+      isBlankGrade: true,
+      gradeName: "",
+      academicYear: "",
+      studentCount: "",
+      firstSemesterRank: "",
+      secondSemesterRank: "",
+      conduct: "",
+      absence: "",
+      subjects: [],
+    });
+  }
+
+  // =========================================================
+  // COLLECT ALL UNIQUE SUBJECTS
+  // =========================================================
+
   const subjectNames = [];
 
   grades.forEach((grade) => {
@@ -26,13 +53,19 @@ export default function TranscriptDocument({ transcript, qrUrl }) {
   });
 
   return (
-    <div id="transcript-document" className="w-full bg-white p-6 text-black">
-      {/* =========================================
+    <div
+      id="transcript-document"
+      className="h-[646px] w-[891px] bg-white p-6 text-black font-transcript-arial text-sm"
+    >
+      {/* =====================================================
           TOP HEADER
-      ========================================= */}
+      ===================================================== */}
 
       <div className="grid grid-cols-[150px_1fr_150px] items-start">
-        {/* QR */}
+        {/* =================================================
+            QR
+        ================================================= */}
+
         <div className="flex flex-col items-center justify-start">
           {qrUrl ? (
             <img
@@ -49,43 +82,35 @@ export default function TranscriptDocument({ transcript, qrUrl }) {
           <p className="mt-2 text-xs">{transcript.studentName || "Student"}</p>
         </div>
 
-        {/* SCHOOL HEADER */}
+        {/* =================================================
+            SCHOOL HEADER
+        ================================================= */}
+
         <div className="text-center">
-          <h1 className="text-3xl font-bold">Gibson School Systems</h1>
-
-          <p className="mt-1 text-lg font-semibold italic">
-            Gibson Youth Academy and Gibson Preparatory College
-          </p>
-
-          <p className="text-xs">Making Young People Strong People</p>
-
-          <p className="mt-3 text-xs font-semibold">
-            Central Administrative Office, Phones: 011-662-8312 or 011-661-0150
-          </p>
-
-          <p className="text-xs font-semibold">
-            P.O. Box 15564 Addis Ababa, Ethiopia.
-          </p>
-
-          <p className="text-xs font-semibold">
-            https://gyaschool.com &nbsp; info@gyaschool.net
-          </p>
+          <img
+            src={schoolHeaderUrl}
+            alt="Gibson School Systems"
+            className="h-auto w-full object-contain"
+          />
 
           <h2 className="mt-3 text-base font-bold underline">
             Student Transcript
           </h2>
         </div>
 
-        {/* PHOTO */}
+        {/* =================================================
+            PHOTO
+        ================================================= */}
+
         <div className="flex flex-col items-center">
-          {transcript.photoUrl ? (
+          {photoUrl ? (
             <img
-              src={transcript.photoUrl}
+              src={photoUrl}
               alt={transcript.studentName || "Student"}
-              className="h-28 w-24 object-cover"
+              className="h-30 w-30 object-cover"
             />
           ) : (
-            <div className="flex h-28 w-24 items-center justify-center border-2 border-dashed text-xs text-gray-500">
+            <div className="flex h-30 w-30 items-center justify-center border-2 border-dashed text-xs text-gray-500">
               Student Photo
             </div>
           )}
@@ -102,11 +127,15 @@ export default function TranscriptDocument({ transcript, qrUrl }) {
         </div>
       </div>
 
-      {/* =========================================
+      {/* =====================================================
           STUDENT INFORMATION
-      ========================================= */}
+      ===================================================== */}
 
-      <div className="mt-3 grid grid-cols-4 border-b border-black text-sm">
+      {/* IMPORTANT:
+          This is intentionally identical to TranscriptPreview.
+      */}
+
+      <div className="mt-3 grid grid-cols-[2fr_0.7fr_0.8fr_0.9fr] border-b border-black text-sm">
         <InfoLine label="Name of the Student" value={transcript.studentName} />
 
         <InfoLine label="Age" value={transcript.age} />
@@ -116,9 +145,9 @@ export default function TranscriptDocument({ transcript, qrUrl }) {
         <InfoLine label="Stream" value={transcript.stream} />
       </div>
 
-      {/* =========================================
+      {/* =====================================================
           TRANSCRIPT TABLE
-      ========================================= */}
+      ===================================================== */}
 
       <div className="mt-0 w-full">
         {grades.length === 0 ? (
@@ -127,24 +156,33 @@ export default function TranscriptDocument({ transcript, qrUrl }) {
           </div>
         ) : (
           <table className="w-full table-fixed border-collapse text-[10px]">
+            {/* =================================================
+                TABLE HEADER
+            ================================================= */}
+
             <thead>
-              {/* =====================================
-                  ROW 1 + 2 — STUDENT ID + GRADE/YEAR
-              ===================================== */}
+              {/* =================================================
+                  ROW 1 — STUDENT ID + GRADES
+              ================================================= */}
 
               <tr>
                 {/* STUDENT ID */}
+
                 <th
                   rowSpan={2}
                   className="w-[220px] border border-black px-2 py-1 text-left align-middle"
                 >
                   <div className="font-semibold">
-                    Student ID: {transcript.studentId || "____________"}
+                    Student ID:{" "}
+                    <span className="underline">
+                      {transcript.studentId || ""}
+                    </span>
                   </div>
                 </th>
 
-                {/* EACH GRADE */}
-                {grades.map((grade, index) => (
+                {/* ALL DISPLAY GRADES */}
+
+                {displayGrades.map((grade, index) => (
                   <th
                     key={index}
                     colSpan={3}
@@ -153,35 +191,43 @@ export default function TranscriptDocument({ transcript, qrUrl }) {
                   >
                     <div className="flex flex-col">
                       {/* GRADE */}
-                      <div className="border-b border-black px-1 py-1 font-bold">
-                        Grade: {grade.gradeName || "____"}
+
+                      <div className="px-1 py-1 font-bold">
+                        Grade:{" "}
+                        <span className="underline">
+                          {grade.isBlankGrade ? "-" : grade.gradeName || "-"}
+                        </span>
                       </div>
 
                       {/* ACADEMIC YEAR */}
+
                       <div className="px-1 py-1 font-normal">
-                        Academic Year: {grade.academicYear || "____________"}
+                        Academic Year:{" "}
+                        <span className="underline">
+                          {grade.isBlankGrade ? "-" : grade.academicYear || "-"}
+                        </span>
                       </div>
                     </div>
                   </th>
                 ))}
               </tr>
 
-              {/* =====================================
+              {/* =================================================
                   EMPTY STRUCTURAL ROW
-              ===================================== */}
+              ================================================= */}
 
               <tr></tr>
 
-              {/* =====================================
+              {/* =================================================
                   ROW 3 — SUBJECT + SEMESTERS
-              ===================================== */}
+              ================================================= */}
 
               <tr>
                 <th className="border border-black px-1 py-1 text-left font-semibold">
                   Subject
                 </th>
 
-                {grades.map((grade, index) => (
+                {displayGrades.map((grade, index) => (
                   <Fragment key={index}>
                     <th className="border border-black px-1 py-1 text-center font-normal">
                       1st
@@ -203,18 +249,22 @@ export default function TranscriptDocument({ transcript, qrUrl }) {
               </tr>
             </thead>
 
-            {/* =====================================
-                SUBJECTS
-            ===================================== */}
+            {/* =================================================
+                TABLE BODY
+            ================================================= */}
 
             <tbody>
+              {/* =================================================
+                  SUBJECTS
+              ================================================= */}
+
               {subjectNames.map((subjectName) => (
                 <tr key={subjectName}>
                   <td className="border border-black px-1 py-[2px] font-medium">
                     {subjectName}
                   </td>
 
-                  {grades.map((grade, gradeIndex) => {
+                  {displayGrades.map((grade, gradeIndex) => {
                     const subject = grade.subjects?.find(
                       (item) => item.name?.trim() === subjectName,
                     );
@@ -228,17 +278,20 @@ export default function TranscriptDocument({ transcript, qrUrl }) {
 
                     return (
                       <Fragment key={gradeIndex}>
-                        {/* 1st Semester */}
+                        {/* FIRST SEMESTER */}
+
                         <td className="border border-black px-1 py-[2px] text-center">
                           {subject?.firstSemester || "-"}
                         </td>
 
-                        {/* 2nd Semester */}
+                        {/* SECOND SEMESTER */}
+
                         <td className="border border-black px-1 py-[2px] text-center">
                           {subject?.secondSemester || "-"}
                         </td>
 
-                        {/* Average */}
+                        {/* AVERAGE */}
+
                         <td className="border border-black px-1 py-[2px] text-center">
                           {average === "" ? "-" : average}
                         </td>
@@ -248,17 +301,23 @@ export default function TranscriptDocument({ transcript, qrUrl }) {
                 </tr>
               ))}
 
-              {/* =====================================
+              {/* =================================================
                   TOTAL
-              ===================================== */}
+              ================================================= */}
 
               <tr>
                 <td className="border border-black px-1 py-[2px] font-bold">
                   Total
                 </td>
 
-                {grades.map((grade, index) => {
-                  const totals = calculateGradeTotals(grade);
+                {displayGrades.map((grade, index) => {
+                  const totals = grade.isBlankGrade
+                    ? {
+                        firstSemesterTotal: "",
+                        secondSemesterTotal: "",
+                        overallAverage: "",
+                      }
+                    : calculateGradeTotals(grade);
 
                   return (
                     <Fragment key={index}>
@@ -278,17 +337,23 @@ export default function TranscriptDocument({ transcript, qrUrl }) {
                 })}
               </tr>
 
-              {/* =====================================
+              {/* =================================================
                   AVERAGE
-              ===================================== */}
+              ================================================= */}
 
               <tr>
                 <td className="border border-black px-1 py-[2px] font-bold">
                   Average
                 </td>
 
-                {grades.map((grade, index) => {
-                  const totals = calculateGradeTotals(grade);
+                {displayGrades.map((grade, index) => {
+                  const totals = grade.isBlankGrade
+                    ? {
+                        firstSemesterAverage: "",
+                        secondSemesterAverage: "",
+                        overallAverage: "",
+                      }
+                    : calculateGradeTotals(grade);
 
                   return (
                     <Fragment key={index}>
@@ -308,78 +373,91 @@ export default function TranscriptDocument({ transcript, qrUrl }) {
                 })}
               </tr>
 
-              {/* =====================================
+              {/* =================================================
                   RANK
-              ===================================== */}
+              ================================================= */}
 
               <tr>
                 <td className="border border-black px-1 py-[2px] font-bold">
                   Rank
                 </td>
 
-                {grades.map((grade, index) => {
-                  const rankAverage = calculateAverage(
-                    grade.firstSemesterRank,
-                    grade.secondSemesterRank,
-                  );
+                {displayGrades.map((grade, index) => {
+                  const rankAverage = grade.isBlankGrade
+                    ? ""
+                    : calculateAverage(
+                        grade.firstSemesterRank,
+                        grade.secondSemesterRank,
+                      );
+
+                  const studentCount = grade.studentCount;
 
                   return (
                     <Fragment key={index}>
-                      {/* 1st Semester Rank */}
+                      {/* 1ST SEMESTER RANK */}
+
                       <td className="border border-black text-center">
-                        {grade.firstSemesterRank || "-"}
+                        {grade.firstSemesterRank && studentCount
+                          ? `${grade.firstSemesterRank}/${studentCount}`
+                          : "-"}
                       </td>
 
-                      {/* 2nd Semester Rank */}
+                      {/* 2ND SEMESTER RANK */}
+
                       <td className="border border-black text-center">
-                        {grade.secondSemesterRank || "-"}
+                        {grade.secondSemesterRank && studentCount
+                          ? `${grade.secondSemesterRank}/${studentCount}`
+                          : "-"}
                       </td>
 
-                      {/* Average Rank */}
+                      {/* AVERAGE RANK */}
+
                       <td className="border border-black text-center font-semibold">
-                        {rankAverage === "" ? "-" : rankAverage}
+                        {rankAverage !== "" && studentCount
+                          ? `${Math.round(Number(rankAverage))}/${studentCount}`
+                          : "-"}
                       </td>
                     </Fragment>
                   );
                 })}
               </tr>
 
-              {/* =====================================
+              {/* =================================================
                   CONDUCT / WORK ETHIC
-              ===================================== */}
+              ================================================= */}
 
               <tr>
                 <td className="border border-black px-1 py-[2px] font-bold">
                   Conduct / Work Ethic
                 </td>
 
-                {grades.map((grade, index) => (
+                {displayGrades.map((grade, index) => (
                   <td
                     key={index}
                     colSpan={3}
                     className="border border-black text-center"
                   >
-                    {grade.conduct || "-"}
+                    {grade.isBlankGrade ? "-" : grade.conduct || "-"}
                   </td>
                 ))}
               </tr>
 
-              {/* =====================================
+              {/* =================================================
                   ABSENCES
-              ===================================== */}
+              ================================================= */}
 
               <tr>
                 <td className="border border-black px-1 py-[2px] font-bold">
                   Absences
                 </td>
 
-                {grades.map((grade, index) => (
+                {displayGrades.map((grade, index) => (
                   <td
                     key={index}
                     colSpan={3}
                     className="border border-black text-center"
                   >
-                    {grade.absence || "-"}
+                    {grade.isBlankGrade ? "-" : grade.absence || "-"}
                   </td>
                 ))}
               </tr>
@@ -388,17 +466,17 @@ export default function TranscriptDocument({ transcript, qrUrl }) {
         )}
       </div>
 
-      {/* =========================================
+      {/* =====================================================
           COMPLETED GRADES
-      ========================================= */}
+      ===================================================== */}
 
       <CompletedGrades grades={grades} />
 
-      {/* =========================================
+      {/* =====================================================
           SIGNATURES
-      ========================================= */}
+      ===================================================== */}
 
-      <div className="mt-2 grid grid-cols-2 text-xs">
+      <div className="mt-2 grid grid-cols-2 text-sm">
         <div>
           <p>Record Keeper's Name ______________________________</p>
 
@@ -416,11 +494,11 @@ export default function TranscriptDocument({ transcript, qrUrl }) {
         </div>
       </div>
 
-      {/* =========================================
+      {/* =====================================================
           FOOTER
-      ========================================= */}
+      ===================================================== */}
 
-      <div className="mt-4 border-t pt-2 text-center text-[10px] font-semibold italic">
+      <div className="mt-4 border-t pt-2 text-center text-sm font-transcript-georgia font-bold italic">
         Do not accept scanned or electronic versions of this document unless
         sent directly from Gibson School System
       </div>
@@ -428,16 +506,16 @@ export default function TranscriptDocument({ transcript, qrUrl }) {
   );
 }
 
-/* =========================================
+/* =========================================================
    STUDENT INFO LINE
-========================================= */
+========================================================= */
 
 function InfoLine({ label, value }) {
   return (
     <div className="flex items-end gap-2 px-2 py-1">
-      <span className="font-semibold whitespace-nowrap">{label}:</span>
+      <span className="whitespace-nowrap font-semibold">{label}:</span>
 
-      <span className="min-w-0 flex-1 border-b border-black font-medium">
+      <span className="min-w-0 flex-1 border-black font-bold underline">
         {value || ""}
       </span>
     </div>

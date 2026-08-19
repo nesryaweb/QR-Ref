@@ -2,6 +2,56 @@
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 
+@font-face {
+  font-family: "Transcript Arial";
+  src: url("/fonts/Arial-Regular.ttf") format("truetype");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Transcript Arial";
+  src: url("/fonts/Arial-Bold.ttf") format("truetype");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Transcript Cormorant";
+  src: url("/fonts/CormorantGaramond-Light.ttf") format("truetype");
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Transcript Cormorant";
+  src: url("/fonts/CormorantGaramond-Regular.ttf") format("truetype");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Transcript Georgia";
+  src: url("/fonts/Georgia-Italic.ttf") format("truetype");
+  font-weight: 400;
+  font-style: italic;
+  font-display: swap;
+}
+
+.font-transcript-arial {
+  font-family: "Transcript Arial", Arial, sans-serif;
+}
+.font-transcript-cormorant {
+  font-family: "Transcript Cormorant", Georgia, serif;
+}
+.font-transcript-georgia {
+  font-family: "Transcript Georgia", Georgia, serif;
+}
+
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {

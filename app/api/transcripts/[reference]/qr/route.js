@@ -1,33 +1,42 @@
-import { prisma } from "@/lib/db";
+import QRCode from "qrcode";
 
 export async function GET(request, { params }) {
   try {
     const { reference } = await params;
 
-    const transcript = await prisma.transcript.findUnique({
-      where: {
-        referenceId: reference,
-      },
-      select: {
-        referenceId: true,
-      },
-    });
-
-    if (!transcript) {
-      return new Response("Transcript not found.", {
-        status: 404,
+    if (!reference) {
+      return new Response("Reference ID is required.", {
+        status: 400,
       });
     }
 
-    const imageUrl = `/transcripts/${reference}/transcript.png`;
+    const baseUrl =
+      process.env.NEXT_PUBLIC_APP_URL ||
+      "http://localhost:3000";
 
-    return Response.redirect(
-      new URL(imageUrl, request.url),
-    );
+    // This is what the QR code contains.
+    const targetUrl = `${baseUrl}/ref/${reference}`;
+
+    // Generate the actual QR image.
+    const qrBuffer = await QRCode.toBuffer(targetUrl, {
+      type: "png",
+      width: 500,
+      margin: 2,
+      errorCorrectionLevel: "H",
+    });
+
+    return new Response(qrBuffer, {
+      status: 200,
+      headers: {
+        "Content-Type": "image/png",
+        "Content-Length": qrBuffer.length.toString(),
+        "Cache-Control": "no-store",
+      },
+    });
   } catch (error) {
-    console.error("Public transcript image failed:", error);
+    console.error("QR generation failed:", error);
 
-    return new Response("Failed to load transcript.", {
+    return new Response("Failed to generate QR code.", {
       status: 500,
     });
   }

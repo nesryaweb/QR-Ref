@@ -17,6 +17,7 @@ export default function AdminPage() {
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState(null);
   const [error, setError] = useState("");
+  const [fieldErrors, setFieldErrors] = useState({});
 
   const [transcripts, setTranscripts] = useState([]);
   const [loadingTranscripts, setLoadingTranscripts] = useState(true);
@@ -108,29 +109,151 @@ export default function AdminPage() {
     }));
   }
 
+  function validateTranscript() {
+    const errors = {};
+
+    // =========================
+    // STUDENT INFORMATION
+    // =========================
+
+    if (!transcript.studentName?.trim()) {
+      errors.studentName = "Student name is required.";
+    }
+
+    if (!transcript.studentId?.trim()) {
+      errors.studentId = "Student ID is required.";
+    }
+
+    if (!transcript.age?.toString().trim()) {
+      errors.age = "Age is required.";
+    } else if (Number(transcript.age) <= 0) {
+      errors.age = "Age must be greater than 0.";
+    }
+
+    if (!transcript.gender?.trim()) {
+      errors.gender = "Please select the student's gender.";
+    }
+
+    if (!transcript.stream?.trim()) {
+      errors.stream = "Stream is required.";
+    }
+
+    if (!photo) {
+      errors.photo = "Student photo is required.";
+    }
+
+    // =========================
+    // GRADES
+    // =========================
+
+    if (!transcript.grades?.length) {
+      errors.grades = "Please add at least one grade.";
+    } else {
+      transcript.grades.forEach((grade, gradeIndex) => {
+        const gradeErrors = {};
+
+        if (!grade.gradeName?.trim()) {
+          gradeErrors.gradeName = "Grade is required.";
+        }
+
+        if (!grade.academicYear?.trim()) {
+          gradeErrors.academicYear = "Academic year is required.";
+        }
+
+        if (!grade.conduct?.trim()) {
+          gradeErrors.conduct = "Conduct / Work Ethic is required.";
+        }
+
+        if (
+          grade.absence === undefined ||
+          grade.absence === null ||
+          grade.absence === ""
+        ) {
+          gradeErrors.absence = "Absences are required.";
+        }
+
+        if (!grade.firstSemesterRank?.trim()) {
+          gradeErrors.firstSemesterRank = "1st semester rank is required.";
+        }
+
+        if (!grade.secondSemesterRank?.trim()) {
+          gradeErrors.secondSemesterRank = "2nd semester rank is required.";
+        }
+
+        // =========================
+        // SUBJECTS
+        // =========================
+
+        if (!grade.subjects?.length) {
+          gradeErrors.subjects = "Please add at least one subject.";
+        } else {
+          const subjectErrors = {};
+
+          grade.subjects.forEach((subject, subjectIndex) => {
+            const currentSubjectErrors = {};
+
+            if (!subject.name?.trim()) {
+              currentSubjectErrors.name = "Subject name is required.";
+            }
+
+            if (
+              subject.firstSemester === undefined ||
+              subject.firstSemester === null ||
+              subject.firstSemester === ""
+            ) {
+              currentSubjectErrors.firstSemester =
+                "1st semester mark is required.";
+            }
+
+            if (
+              subject.secondSemester === undefined ||
+              subject.secondSemester === null ||
+              subject.secondSemester === ""
+            ) {
+              currentSubjectErrors.secondSemester =
+                "2nd semester mark is required.";
+            }
+
+            if (Object.keys(currentSubjectErrors).length > 0) {
+              subjectErrors[subjectIndex] = currentSubjectErrors;
+            }
+          });
+
+          if (Object.keys(subjectErrors).length > 0) {
+            gradeErrors.subjects = subjectErrors;
+          }
+        }
+
+        if (Object.keys(gradeErrors).length > 0) {
+          errors.grades = errors.grades || {};
+          errors.grades[gradeIndex] = gradeErrors;
+        }
+      });
+    }
+
+    return errors;
+  }
+
   async function handleSaveTranscript(event) {
     event.preventDefault();
 
     setLoading(true);
     setError("");
     setResult(null);
+    setFieldErrors({});
     setLoadingMessage("Saving transcript...");
 
     try {
-      if (!transcript.studentName?.trim()) {
-        throw new Error("Please enter the student's name.");
-      }
+      const validationErrors = validateTranscript();
 
-      if (!transcript.studentId?.trim()) {
-        throw new Error("Please enter the student's ID.");
-      }
+      setFieldErrors(validationErrors);
 
-      if (!photo) {
-        throw new Error("Please upload the student's photo.");
-      }
-
-      if (!transcript.grades?.length) {
-        throw new Error("Please add at least one grade.");
+      // Client-side validation failed.
+      // Do NOT throw an error because this is expected user input.
+      if (Object.keys(validationErrors).length > 0) {
+        setLoading(false);
+        setLoadingMessage("");
+        return;
       }
 
       const formData = new FormData();
@@ -151,10 +274,22 @@ export default function AdminPage() {
         body: formData,
       });
 
-      const data = await response.json();
+      const text = await response.text();
+
+      let data = {};
+
+      if (text) {
+        try {
+          data = JSON.parse(text);
+        } catch {
+          data = {};
+        }
+      }
 
       if (!response.ok) {
-        throw new Error(data.error || "Failed to save transcript.");
+        throw new Error(
+          data.error || `Failed to save transcript (${response.status}).`,
+        );
       }
 
       console.log("SAVED TRANSCRIPT:", data.transcript);
@@ -163,6 +298,7 @@ export default function AdminPage() {
 
       setTranscript(createEmptyTranscript());
       setPhoto(null);
+      setFieldErrors({});
 
       await loadTranscripts();
     } catch (error) {
@@ -199,10 +335,20 @@ export default function AdminPage() {
         }),
       });
 
-      const data = await response.json();
+      const text = await response.text();
+
+      let data = {};
+
+      if (text) {
+        try {
+          data = JSON.parse(text);
+        } catch {
+          data = {};
+        }
+      }
 
       if (!response.ok) {
-        throw new Error(data.error || "Delete failed.");
+        throw new Error(data.error || `Delete failed (${response.status}).`);
       }
 
       if (result?.referenceId === referenceId) {
@@ -211,8 +357,9 @@ export default function AdminPage() {
 
       await loadTranscripts();
     } catch (error) {
-      console.error(error);
-      setError(error.message);
+      console.error("Transcript deletion failed:", error);
+
+      setError(error instanceof Error ? error.message : "Delete failed.");
     }
   }
 
@@ -265,8 +412,16 @@ export default function AdminPage() {
                   updateTranscript("studentName", event.target.value)
                 }
                 placeholder="Enter student's full name"
-                className="w-full rounded-md border p-3 outline-none focus:ring-2 focus:ring-black"
+                className={`w-full rounded-md border p-3 outline-none focus:ring-2 focus:ring-black ${
+                  fieldErrors.studentName ? "border-red-500" : ""
+                }`}
               />
+
+              {fieldErrors.studentName && (
+                <p className="mt-1 text-sm text-red-600">
+                  {fieldErrors.studentName}
+                </p>
+              )}
             </div>
             {/* Student ID */}
             <div>
@@ -285,8 +440,16 @@ export default function AdminPage() {
                   updateTranscript("studentId", event.target.value)
                 }
                 placeholder="e.g. 1121564"
-                className="w-full rounded-md border p-3 outline-none focus:ring-2 focus:ring-black"
+                className={`w-full rounded-md border p-3 outline-none focus:ring-2 focus:ring-black ${
+                  fieldErrors.studentId ? "border-red-500" : ""
+                }`}
               />
+
+              {fieldErrors.studentId && (
+                <p className="mt-1 text-sm text-red-600">
+                  {fieldErrors.studentId}
+                </p>
+              )}
             </div>
             {/* Age / Gender / Stream */}
             <div className="grid gap-5 md:grid-cols-3">
@@ -305,8 +468,14 @@ export default function AdminPage() {
                     updateTranscript("age", event.target.value)
                   }
                   placeholder="Age"
-                  className="w-full rounded-md border p-3 outline-none focus:ring-2 focus:ring-black"
+                  className={`w-full rounded-md border p-3 outline-none focus:ring-2 focus:ring-black ${
+                    fieldErrors.age ? "border-red-500" : ""
+                  }`}
                 />
+
+                {fieldErrors.age && (
+                  <p className="mt-1 text-sm text-red-600">{fieldErrors.age}</p>
+                )}
               </div>
 
               {/* Gender */}
@@ -324,12 +493,20 @@ export default function AdminPage() {
                   onChange={(event) =>
                     updateTranscript("gender", event.target.value)
                   }
-                  className="w-full rounded-md border p-3 outline-none focus:ring-2 focus:ring-black"
+                  className={`w-full rounded-md border p-3 outline-none focus:ring-2 focus:ring-black ${
+                    fieldErrors.gender ? "border-red-500" : ""
+                  }`}
                 >
                   <option value="">Select gender</option>
                   <option value="Male">Male</option>
                   <option value="Female">Female</option>
                 </select>
+
+                {fieldErrors.gender && (
+                  <p className="mt-1 text-sm text-red-600">
+                    {fieldErrors.gender}
+                  </p>
+                )}
               </div>
 
               {/* Stream */}
@@ -349,8 +526,16 @@ export default function AdminPage() {
                     updateTranscript("stream", event.target.value)
                   }
                   placeholder="e.g. Natural Science"
-                  className="w-full rounded-md border p-3 outline-none focus:ring-2 focus:ring-black"
+                  className={`w-full rounded-md border p-3 outline-none focus:ring-2 focus:ring-black ${
+                    fieldErrors.stream ? "border-red-500" : ""
+                  }`}
                 />
+
+                {fieldErrors.stream && (
+                  <p className="mt-1 text-sm text-red-600">
+                    {fieldErrors.stream}
+                  </p>
+                )}
               </div>
             </div>
 
@@ -385,7 +570,9 @@ export default function AdminPage() {
                 }}
                 className="block w-full rounded-md border p-3 file:mr-4 file:rounded-md file:border-0 file:bg-gray-200 file:px-4 file:py-2 file:text-sm file:font-medium cursor-pointer hover:file:bg-gray-300"
               />
-
+              {fieldErrors.photo && (
+                <p className="mt-1 text-sm text-red-600">{fieldErrors.photo}</p>
+              )}
               {photo && (
                 <div className="mt-4 flex items-center gap-4 rounded-md bg-gray-100 p-4">
                   <img
@@ -422,6 +609,11 @@ export default function AdminPage() {
                   + Add Grade
                 </button>
               </div>
+              {typeof fieldErrors.grades === "string" && (
+                <p className="mt-2 text-sm font-medium text-red-600">
+                  {fieldErrors.grades}
+                </p>
+              )}
 
               {transcript.grades.length === 0 ? (
                 <div className="rounded-xl border border-dashed bg-white p-8 text-center">
@@ -441,6 +633,7 @@ export default function AdminPage() {
                     <GradeEditor
                       key={gradeIndex}
                       grade={grade}
+                      errors={fieldErrors.grades?.[gradeIndex] || {}}
                       gradeIndex={gradeIndex}
                       onUpdateGrade={updateGrade}
                       onAddSubject={addSubject}
@@ -463,8 +656,7 @@ export default function AdminPage() {
           </div>
         </section>
         <TranscriptPreview transcript={transcript} />
-        <TranscriptDocument transcript={transcript} qrUrl={null} />
-
+      
         <TranscriptList
           transcripts={transcripts}
           loading={loadingTranscripts}
@@ -517,12 +709,12 @@ function TranscriptRow({ transcript, onDelete }) {
 
   return (
     <div className="flex flex-col gap-4 rounded-lg border bg-white p-4 md:flex-row md:items-center">
-      {/* TRANSCRIPT IMAGE */}
+      {/* STUDENT PHOTO */}
       <div className="shrink-0">
         <img
-          src={transcriptImageUrl}
-          alt={`Transcript for ${transcript.studentName}`}
-          className="h-24 w-20 rounded-md border object-cover"
+          src={`/api/transcripts/${transcript.referenceId}/photo`}
+          alt={transcript.studentName || "Student"}
+          className="h-28 w-24 rounded object-cover"
         />
       </div>
 
@@ -542,19 +734,27 @@ function TranscriptRow({ transcript, onDelete }) {
       {/* ACTIONS */}
       <div className="flex flex-wrap gap-2">
         <a
-          href={transcriptImageUrl}
+          href={`/ref/${transcript.referenceId}`}
           target="_blank"
           rel="noopener noreferrer"
-          className="rounded-md border px-3 py-2 text-sm hover:bg-gray-100"
+          className="rounded-md cursor-pointer border px-3 py-2 text-sm hover:bg-gray-100"
         >
           View
+        </a>
+
+        <a
+          href={`/transcripts/${transcript.referenceId}/transcript.pdf`}
+          download
+          className="rounded-md cursor-pointer border px-3 py-2 text-sm hover:bg-gray-100"
+        >
+          Download PDF
         </a>
 
         <a
           href={qrUrl}
           target="_blank"
           rel="noopener noreferrer"
-          className="rounded-md border px-3 py-2 text-sm hover:bg-gray-100"
+          className="rounded-md cursor-pointer border px-3 py-2 text-sm hover:bg-gray-100"
         >
           QR Code
         </a>
@@ -562,7 +762,7 @@ function TranscriptRow({ transcript, onDelete }) {
         <button
           type="button"
           onClick={() => onDelete(transcript.referenceId)}
-          className="rounded-md bg-red-600 px-3 py-2 text-sm text-white hover:bg-red-500"
+          className="rounded-md cursor-pointer bg-red-600 px-3 py-2 text-sm text-white hover:bg-red-500"
         >
           Delete
         </button>

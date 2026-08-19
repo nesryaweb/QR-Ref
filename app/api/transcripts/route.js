@@ -1,5 +1,7 @@
 import { prisma } from "@/lib/db";
-
+import fs from "fs/promises";
+import path from "path";
+import { generateTranscriptFiles } from "@/lib/generateTranscriptFiles";
 function generateReferenceId() {
   return Math.floor(1000000 + Math.random() * 9000000).toString();
 }
@@ -128,7 +130,32 @@ export async function POST(request) {
     });
 
     console.log("TRANSCRIPT SAVED:", savedTranscript.id);
+    console.log("STARTING FILE GENERATION FOR:", savedTranscript.referenceId);
 
+    try {
+      const generatedFiles = await generateTranscriptFiles(
+        savedTranscript.referenceId,
+      );
+
+      console.log("TRANSCRIPT FILES GENERATED:", generatedFiles);
+    } catch (generationError) {
+      console.error("========== FILE GENERATION ERROR ==========");
+      console.error(generationError);
+      console.error("===========================================");
+
+      return Response.json(
+        {
+          error: "Transcript was saved, but file generation failed.",
+          referenceId: savedTranscript.referenceId,
+          details:
+            generationError instanceof Error
+              ? generationError.message
+              : String(generationError),
+        },
+        { status: 500 },
+      );
+    }
+    console.log("TRANSCRIPT FILES GENERATED:", savedTranscript.referenceId);
     return Response.json(
       {
         transcript: {
@@ -184,6 +211,78 @@ export async function GET() {
     return Response.json(
       {
         error: "Failed to load transcripts.",
+      },
+      {
+        status: 500,
+      },
+    );
+  }
+}
+
+export async function DELETE(request) {
+  try {
+    const body = await request.json();
+
+    const { referenceId } = body;
+
+    if (!referenceId) {
+      return Response.json(
+        {
+          error: "Reference ID is required.",
+        },
+        {
+          status: 400,
+        },
+      );
+    }
+
+    const transcript = await prisma.transcript.findUnique({
+      where: {
+        referenceId,
+      },
+    });
+
+    if (!transcript) {
+      return Response.json(
+        {
+          error: "Transcript not found.",
+        },
+        {
+          status: 404,
+        },
+      );
+    }
+
+    await prisma.transcript.delete({
+      where: {
+        referenceId,
+      },
+    });
+
+    // Delete generated PNG/PDF files
+    const outputDirectory = path.join(
+      process.cwd(),
+      "public",
+      "transcripts",
+      referenceId,
+    );
+
+    await fs.rm(outputDirectory, {
+      recursive: true,
+      force: true,
+    });
+
+    console.log("TRANSCRIPT DELETED:", referenceId);
+
+    return Response.json({
+      success: true,
+    });
+  } catch (error) {
+    console.error("Transcript deletion failed:", error);
+
+    return Response.json(
+      {
+        error: "Failed to delete transcript.",
       },
       {
         status: 500,

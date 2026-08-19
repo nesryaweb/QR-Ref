@@ -17,7 +17,7 @@ export default function CompletedGrades({ grades = [] }) {
   }
 
   return (
-    <p className="mt-2 text-xs">
+    <p className="mt-2 text-sm">
       He/She has completed{" "}
       {completedGrades.length > 1 ? "grades" : "grade"}{" "}
       <span className="font-semibold underline">
