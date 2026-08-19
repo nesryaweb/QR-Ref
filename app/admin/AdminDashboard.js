@@ -357,7 +357,9 @@ export default function AdminPage() {
 
       if (!response.ok) {
         throw new Error(
-          data.error || `Failed to save transcript (${response.status}).`,
+          `${data.error || `Failed to save transcript (${response.status}).`}${
+            data.details ? `\n\n${data.details}` : ""
+          }`,
         );
       }
 
