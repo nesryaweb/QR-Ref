@@ -808,7 +808,7 @@ function TranscriptRow({ transcript, onDelete }) {
       {/* ACTIONS */}
       <div className="flex flex-wrap gap-2">
         <a
-          href={`/ref/${transcript.referenceId}`}
+          href={transcript.pngUrl}
           target="_blank"
           rel="noopener noreferrer"
           className="rounded-md cursor-pointer border px-3 py-2 text-sm hover:bg-gray-100"
@@ -817,8 +817,8 @@ function TranscriptRow({ transcript, onDelete }) {
         </a>
 
         <a
-          href={`/transcripts/${transcript.referenceId}/transcript.pdf`}
-          download
+           href={transcript.pdfUrl}
+  download
           className="rounded-md cursor-pointer border px-3 py-2 text-sm hover:bg-gray-100"
         >
           Download PDF

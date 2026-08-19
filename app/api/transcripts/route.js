@@ -1,7 +1,7 @@
 import { prisma } from "@/lib/db";
-import fs from "fs/promises";
-import path from "path";
+
 import { generateTranscriptFiles } from "@/lib/generateTranscriptFiles";
+import { del } from "@vercel/blob";
 
 function generateReferenceId() {
   return Math.floor(1000000 + Math.random() * 9000000).toString();
@@ -184,6 +184,16 @@ export async function POST(request) {
       );
 
       console.log("TRANSCRIPT FILES GENERATED:", generatedFiles);
+
+      await prisma.transcript.update({
+        where: {
+          referenceId: savedTranscript.referenceId,
+        },
+        data: {
+          pngUrl: generatedFiles.pngUrl,
+          pdfUrl: generatedFiles.pdfUrl,
+        },
+      });
     } catch (generationError) {
       console.error("========== FILE GENERATION ERROR ==========");
       console.error(generationError);
@@ -219,11 +229,12 @@ export async function POST(request) {
           gender: savedTranscript.gender,
           stream: savedTranscript.stream,
           createdAt: savedTranscript.createdAt,
+
+          pngUrl: generatedFiles.pngUrl,
+          pdfUrl: generatedFiles.pdfUrl,
         },
       },
-      {
-        status: 201,
-      },
+      { status: 201 },
     );
   } catch (error) {
     console.error("Transcript save failed:", error);
@@ -259,6 +270,8 @@ export async function GET() {
         gender: true,
         stream: true,
         createdAt: true,
+        pngUrl: true,
+  pdfUrl: true,
       },
     });
 
@@ -348,17 +361,13 @@ export async function DELETE(request) {
     //       transcript.pdf
     // =========================================
 
-    const outputDirectory = path.join(
-      process.cwd(),
-      "public",
-      "transcripts",
-      referenceId,
-    );
+    if (transcript.pngUrl) {
+  await del(transcript.pngUrl);
+}
 
-    await fs.rm(outputDirectory, {
-      recursive: true,
-      force: true,
-    });
+if (transcript.pdfUrl) {
+  await del(transcript.pdfUrl);
+}
 
     console.log("TRANSCRIPT DELETED:", referenceId);
 

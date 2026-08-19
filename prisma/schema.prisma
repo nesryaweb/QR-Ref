@@ -27,4 +27,6 @@ model Transcript {
   imageSize     Int?
   pdf           Bytes?
   pdfSize       Int?
+   pngUrl          String?
+  pdfUrl          String?
 }

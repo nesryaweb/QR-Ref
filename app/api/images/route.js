@@ -18,6 +18,8 @@ export async function GET() {
         mimeType: true,
         size: true,
         createdAt: true,
+        pngUrl: true,
+  pdfUrl: true,
       },
       orderBy: {
         createdAt: "desc",
