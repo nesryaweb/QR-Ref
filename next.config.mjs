@@ -1,6 +1,14 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  /* config options here */
+  serverExternalPackages: [
+    "@sparticuz/chromium",
+    "puppeteer-core",
+    "puppeteer",
+  ],
+
+  outputFileTracingIncludes: {
+    "/api/transcripts": ["./node_modules/@sparticuz/chromium/bin/**"],
+  },
 };
 
 export default nextConfig;
