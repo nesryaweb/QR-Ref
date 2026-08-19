@@ -234,6 +234,61 @@ export default function AdminPage() {
     return errors;
   }
 
+  async function compressPhoto(file) {
+    const maxWidth = 1200;
+    const maxHeight = 1200;
+    const quality = 0.8;
+
+    const image = new Image();
+
+    const imageUrl = URL.createObjectURL(file);
+
+    try {
+      image.src = imageUrl;
+
+      await new Promise((resolve, reject) => {
+        image.onload = resolve;
+        image.onerror = reject;
+      });
+
+      let width = image.width;
+      let height = image.height;
+
+      // Resize while maintaining aspect ratio
+      if (width > maxWidth || height > maxHeight) {
+        const widthRatio = maxWidth / width;
+        const heightRatio = maxHeight / height;
+        const ratio = Math.min(widthRatio, heightRatio);
+
+        width = Math.round(width * ratio);
+        height = Math.round(height * ratio);
+      }
+
+      const canvas = document.createElement("canvas");
+
+      canvas.width = width;
+      canvas.height = height;
+
+      const context = canvas.getContext("2d");
+
+      context.drawImage(image, 0, 0, width, height);
+
+      const blob = await new Promise((resolve) => {
+        canvas.toBlob(resolve, "image/jpeg", quality);
+      });
+
+      if (!blob) {
+        throw new Error("Failed to compress photo.");
+      }
+
+      return new File([blob], file.name.replace(/\.[^/.]+$/, "") + ".jpg", {
+        type: "image/jpeg",
+      });
+    } finally {
+      URL.revokeObjectURL(imageUrl);
+    }
+  }
+
   async function handleSaveTranscript(event) {
     event.preventDefault();
 
@@ -248,13 +303,25 @@ export default function AdminPage() {
 
       setFieldErrors(validationErrors);
 
-      // Client-side validation failed.
-      // Do NOT throw an error because this is expected user input.
       if (Object.keys(validationErrors).length > 0) {
         setLoading(false);
         setLoadingMessage("");
         return;
       }
+
+      setLoadingMessage("Preparing student photo...");
+
+      const compressedPhoto = await compressPhoto(photo);
+
+      console.log("Original photo:", {
+        name: photo.name,
+        size: photo.size,
+      });
+
+      console.log("Compressed photo:", {
+        name: compressedPhoto.name,
+        size: compressedPhoto.size,
+      });
 
       const formData = new FormData();
 
@@ -267,7 +334,9 @@ export default function AdminPage() {
         }),
       );
 
-      formData.append("photo", photo);
+      formData.append("photo", compressedPhoto);
+
+      setLoadingMessage("Saving transcript...");
 
       const response = await fetch("/api/transcripts", {
         method: "POST",
@@ -656,7 +725,7 @@ export default function AdminPage() {
           </div>
         </section>
         <TranscriptPreview transcript={transcript} />
-      
+
         <TranscriptList
           transcripts={transcripts}
           loading={loadingTranscripts}
