@@ -168,6 +168,8 @@ export default function AdminPage() {
   async function handleSaveTranscript(event) {
     event.preventDefault();
 
+    console.log("========== SAVE CLICKED ==========");
+
     setLoading(true);
     setError("");
     setResult(null);
@@ -175,28 +177,30 @@ export default function AdminPage() {
     setLoadingMessage("Saving transcript...");
 
     try {
+      console.log("Transcript before validation:", transcript);
+      console.log("Number of grades:", transcript.grades.length);
+      console.log("Photo:", photo);
+
       const validationErrors = validateTranscript(transcript, photo);
+
+      console.log("Validation errors:", validationErrors);
+
       setFieldErrors(validationErrors);
 
       if (Object.keys(validationErrors).length > 0) {
+        console.log("VALIDATION FAILED");
         setLoading(false);
         setLoadingMessage("");
         return;
       }
 
+      console.log("VALIDATION PASSED");
+
       setLoadingMessage("Preparing student photo...");
 
       const compressedPhoto = await compressPhoto(photo);
 
-      console.log("Original photo:", {
-        name: photo.name,
-        size: photo.size,
-      });
-
-      console.log("Compressed photo:", {
-        name: compressedPhoto.name,
-        size: compressedPhoto.size,
-      });
+      console.log("PHOTO COMPRESSED");
 
       const formData = new FormData();
 
@@ -211,12 +215,19 @@ export default function AdminPage() {
 
       formData.append("photo", compressedPhoto);
 
+      console.log("FORM DATA CREATED");
+      console.log("SENDING REQUEST...");
+
       setLoadingMessage("Saving transcript...");
 
       const response = await fetch("/api/transcripts", {
         method: "POST",
         body: formData,
       });
+
+      console.log("RESPONSE RECEIVED:", response.status);
+
+      // ... keep the rest of your existing code
 
       const text = await response.text();
 

@@ -247,8 +247,18 @@ export default function GradeEditor({
                             )
                           }
                           placeholder="Subject name"
-                          className="w-full rounded-md border p-2 outline-none focus:ring-2 focus:ring-black"
+                          className={`w-full rounded-md border p-2 outline-none focus:ring-2 focus:ring-black ${
+                            errors.subjects?.[subjectIndex]?.name
+                              ? "border-red-500"
+                              : ""
+                          }`}
                         />
+
+                        {errors.subjects?.[subjectIndex]?.name && (
+                          <p className="mt-1 text-sm text-red-600">
+                            {errors.subjects[subjectIndex].name}
+                          </p>
+                        )}
                       </td>
 
                       {/* First semester */}
@@ -267,8 +277,17 @@ export default function GradeEditor({
                               event.target.value,
                             )
                           }
-                          className="w-full rounded-md border p-2 outline-none focus:ring-2 focus:ring-black"
+                          className={`w-full rounded-md border p-2 outline-none focus:ring-2 focus:ring-black ${
+                            errors.subjects?.[subjectIndex]?.firstSemester
+                              ? "border-red-500"
+                              : ""
+                          }`}
                         />
+                        {errors.subjects?.[subjectIndex]?.firstSemester && (
+                          <p className="mt-1 text-sm text-red-600">
+                            {errors.subjects[subjectIndex].firstSemester}
+                          </p>
+                        )}
                       </td>
 
                       {/* Second semester */}
@@ -287,8 +306,18 @@ export default function GradeEditor({
                               event.target.value,
                             )
                           }
-                          className="w-full rounded-md border p-2 outline-none focus:ring-2 focus:ring-black"
+                          className={`w-full rounded-md border p-2 outline-none focus:ring-2 focus:ring-black ${
+                            errors.subjects?.[subjectIndex]?.secondSemester
+                              ? "border-red-500"
+                              : ""
+                          }`}
                         />
+
+                        {errors.subjects?.[subjectIndex]?.secondSemester && (
+                          <p className="mt-1 text-sm text-red-600">
+                            {errors.subjects[subjectIndex].secondSemester}
+                          </p>
+                        )}
                       </td>
 
                       {/* Average */}
