@@ -20,22 +20,23 @@ export default function TranscriptDocument({
   // They are NOT added to transcript.grades.
   // They will NOT be saved.
   //
-  const displayGrades = [...grades];
-
-  while (displayGrades.length < 4) {
-    displayGrades.push({
-      isBlankGrade: true,
-      gradeName: "",
-      academicYear: "",
-      studentCount: "",
-      firstSemesterRank: "",
-      secondSemesterRank: "",
-      conduct: "",
-      absence: "",
-      subjects: [],
-    });
-  }
-
+  const blankGrade = {
+    isBlankGrade: true,
+    gradeName: "",
+    academicYear: "",
+    studentCount: "",
+    firstSemesterRank: "",
+    secondSemesterRank: "",
+    conduct: "",
+    absence: "",
+    subjects: [],
+  };
+  const displayGrades = [
+    ...Array.from({ length: Math.max(0, 4 - grades.length) }, () => ({
+      ...blankGrade,
+    })),
+    ...grades,
+  ];
   // =========================================================
   // COLLECT ALL UNIQUE SUBJECTS
   // =========================================================
