@@ -8,7 +8,7 @@ function generateReferenceId() {
 }
 
 export async function POST(request) {
-  console.log("========== POST /api/transcripts REACHED ==========");
+  
   try {
     // =========================================
     // READ FORM DATA
