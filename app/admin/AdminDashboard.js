@@ -777,8 +777,6 @@ function TranscriptList({ transcripts, loading, onDelete }) {
 }
 
 function TranscriptRow({ transcript, onDelete }) {
-  const transcriptImageUrl = `/ref/${transcript.referenceId}`;
-
   const qrUrl = `/api/transcripts/${transcript.referenceId}/qr`;
 
   return (
@@ -794,7 +792,9 @@ function TranscriptRow({ transcript, onDelete }) {
 
       {/* INFORMATION */}
       <div className="min-w-0 flex-1">
-        <p className="truncate font-semibold">{transcript.studentName}</p>
+        <p className="truncate font-semibold">
+          {transcript.studentName}
+        </p>
 
         <p className="mt-1 text-sm text-gray-500">
           Reference: {transcript.referenceId}
@@ -807,8 +807,10 @@ function TranscriptRow({ transcript, onDelete }) {
 
       {/* ACTIONS */}
       <div className="flex flex-wrap gap-2">
+
+        {/* VIEW */}
         <a
-          href={transcript.pngUrl}
+          href={`/ref/${transcript.referenceId}`}
           target="_blank"
           rel="noopener noreferrer"
           className="rounded-md cursor-pointer border px-3 py-2 text-sm hover:bg-gray-100"
@@ -816,14 +818,15 @@ function TranscriptRow({ transcript, onDelete }) {
           View
         </a>
 
+        {/* DOWNLOAD PDF */}
         <a
-           href={transcript.pdfUrl}
-  download
+          href={`/api/transcripts/${transcript.referenceId}/pdf`}
           className="rounded-md cursor-pointer border px-3 py-2 text-sm hover:bg-gray-100"
         >
           Download PDF
         </a>
 
+        {/* QR CODE */}
         <a
           href={qrUrl}
           target="_blank"
@@ -833,6 +836,7 @@ function TranscriptRow({ transcript, onDelete }) {
           QR Code
         </a>
 
+        {/* DELETE */}
         <button
           type="button"
           onClick={() => onDelete(transcript.referenceId)}
@@ -840,6 +844,7 @@ function TranscriptRow({ transcript, onDelete }) {
         >
           Delete
         </button>
+
       </div>
     </div>
   );

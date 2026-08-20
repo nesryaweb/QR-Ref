@@ -1,348 +1,8 @@
 import { prisma } from "@/lib/db";
 
-import { generateTranscriptFiles } from "@/lib/generateTranscriptFiles";
-import { del } from "@vercel/blob";
-
-function generateReferenceId() {
-  return Math.floor(1000000 + Math.random() * 9000000).toString();
-}
-
-export async function POST(request) {
+export async function GET(request, { params }) {
   try {
-    // =========================================
-    // READ FORM DATA
-    // =========================================
-
-    const formData = await request.formData();
-
-    const transcriptValue = formData.get("transcript");
-    const photo = formData.get("photo");
-
-    // =========================================
-    // BASIC VALIDATION
-    // =========================================
-
-    if (!transcriptValue) {
-      return Response.json(
-        {
-          error: "Transcript data is required.",
-        },
-        {
-          status: 400,
-        },
-      );
-    }
-
-    if (!photo || typeof photo === "string") {
-      return Response.json(
-        {
-          error: "Student photo is required.",
-        },
-        {
-          status: 400,
-        },
-      );
-    }
-
-    // =========================================
-    // PARSE TRANSCRIPT
-    // =========================================
-
-    let transcript;
-
-    try {
-      transcript = JSON.parse(transcriptValue);
-    } catch (error) {
-      console.error("Transcript JSON parsing failed:", error);
-
-      return Response.json(
-        {
-          error: "Invalid transcript data.",
-        },
-        {
-          status: 400,
-        },
-      );
-    }
-
-    console.log("RECEIVED TRANSCRIPT:", transcript);
-
-    // =========================================
-    // EXTRACT VALUES
-    // =========================================
-
-    const {
-      studentName,
-      studentId,
-      age,
-      gender,
-      stream,
-      grades,
-      completedGrade,
-    } = transcript;
-
-    // =========================================
-    // VALIDATION
-    // =========================================
-
-    if (!studentName?.trim()) {
-      return Response.json(
-        {
-          error: "Student name is required.",
-        },
-        {
-          status: 400,
-        },
-      );
-    }
-
-    if (!studentId?.trim()) {
-      return Response.json(
-        {
-          error: "Student ID is required.",
-        },
-        {
-          status: 400,
-        },
-      );
-    }
-
-    if (!grades?.length) {
-      return Response.json(
-        {
-          error: "At least one grade is required.",
-        },
-        {
-          status: 400,
-        },
-      );
-    }
-
-    // =========================================
-    // CONVERT PHOTO TO BUFFER
-    // =========================================
-
-    const photoBuffer = Buffer.from(await photo.arrayBuffer());
-
-    // =========================================
-    // GENERATE UNIQUE REFERENCE ID
-    // =========================================
-
-    let referenceId;
-
-    while (!referenceId) {
-      const candidate = generateReferenceId();
-
-      const existing = await prisma.transcript.findUnique({
-        where: {
-          referenceId: candidate,
-        },
-      });
-
-      if (!existing) {
-        referenceId = candidate;
-      }
-    }
-
-    // =========================================
-    // SAVE TRANSCRIPT TO DATABASE
-    // =========================================
-
-    const savedTranscript = await prisma.transcript.create({
-      data: {
-        referenceId,
-
-        studentName,
-        studentId,
-        age,
-        gender,
-        stream,
-
-        photo: photoBuffer,
-        photoMimeType: photo.type,
-        photoName: photo.name,
-        photoSize: photo.size,
-
-        transcript: {
-          grades,
-          completedGrade,
-        },
-      },
-    });
-
-    console.log("TRANSCRIPT SAVED:", savedTranscript.id);
-
-    console.log("STARTING FILE GENERATION FOR:", savedTranscript.referenceId);
-
-    // =========================================
-    // GENERATED FILES
-    //
-    // Declare this OUTSIDE the inner try block
-    // so it can also be used in the success response.
-    // =========================================
-
-    let generatedFiles;
-
-    // =========================================
-    // GENERATE PNG + PDF
-    // =========================================
-
-    try {
-      generatedFiles = await generateTranscriptFiles(
-        savedTranscript.referenceId,
-      );
-
-      console.log("TRANSCRIPT FILES GENERATED:", generatedFiles);
-
-      // =========================================
-      // SAVE FILE URLS TO DATABASE
-      // =========================================
-
-      await prisma.transcript.update({
-        where: {
-          referenceId: savedTranscript.referenceId,
-        },
-        data: {
-          pngUrl: generatedFiles.pngUrl,
-          pdfUrl: generatedFiles.pdfUrl,
-        },
-      });
-
-      console.log("TRANSCRIPT FILE URLS SAVED:", savedTranscript.referenceId);
-    } catch (generationError) {
-      console.error("========== FILE GENERATION ERROR ==========");
-      console.error(generationError);
-      console.error("===========================================");
-
-      return Response.json(
-        {
-          error: "Transcript was saved, but file generation failed.",
-          referenceId: savedTranscript.referenceId,
-          details:
-            generationError instanceof Error
-              ? generationError.stack || generationError.message
-              : String(generationError),
-        },
-        {
-          status: 500,
-        },
-      );
-    }
-
-    // =========================================
-    // SAFETY CHECK
-    // =========================================
-
-    if (!generatedFiles) {
-      throw new Error("Transcript files were not generated.");
-    }
-
-    // =========================================
-    // SUCCESS
-    // =========================================
-
-    console.log("TRANSCRIPT COMPLETELY SAVED:", savedTranscript.referenceId);
-
-    return Response.json(
-      {
-        transcript: {
-          id: savedTranscript.id,
-          referenceId: savedTranscript.referenceId,
-          studentName: savedTranscript.studentName,
-          studentId: savedTranscript.studentId,
-          age: savedTranscript.age,
-          gender: savedTranscript.gender,
-          stream: savedTranscript.stream,
-          createdAt: savedTranscript.createdAt,
-
-          pngUrl: generatedFiles.pngUrl,
-          pdfUrl: generatedFiles.pdfUrl,
-        },
-      },
-      {
-        status: 201,
-      },
-    );
-  } catch (error) {
-    console.error("Transcript save failed:", error);
-
-    return Response.json(
-      {
-        error: "Failed to save transcript.",
-      },
-      {
-        status: 500,
-      },
-    );
-  }
-}
-
-// =========================================
-// GET ALL TRANSCRIPTS
-// =========================================
-
-export async function GET() {
-  try {
-    const transcripts = await prisma.transcript.findMany({
-      orderBy: {
-        createdAt: "desc",
-      },
-
-      select: {
-        id: true,
-        referenceId: true,
-        studentName: true,
-        studentId: true,
-        age: true,
-        gender: true,
-        stream: true,
-        createdAt: true,
-        pngUrl: true,
-        pdfUrl: true,
-      },
-    });
-
-    return Response.json({
-      transcripts,
-    });
-  } catch (error) {
-    console.error("Failed to load transcripts:", error);
-
-    return Response.json(
-      {
-        error: "Failed to load transcripts.",
-      },
-      {
-        status: 500,
-      },
-    );
-  }
-}
-
-// =========================================
-// DELETE TRANSCRIPT
-// =========================================
-
-export async function DELETE(request) {
-  try {
-    const body = await request.json();
-
-    const { referenceId } = body;
-
-    // =========================================
-    // VALIDATE REFERENCE ID
-    // =========================================
-
-    if (!referenceId) {
-      return Response.json(
-        {
-          error: "Reference ID is required.",
-        },
-        {
-          status: 400,
-        },
-      );
-    }
+    const { reference } = await params;
 
     // =========================================
     // FIND TRANSCRIPT
@@ -350,62 +10,127 @@ export async function DELETE(request) {
 
     const transcript = await prisma.transcript.findUnique({
       where: {
-        referenceId,
+        referenceId: reference,
+      },
+      select: {
+        referenceId: true,
+        pngUrl: true,
       },
     });
 
     if (!transcript) {
-      return Response.json(
-        {
-          error: "Transcript not found.",
-        },
-        {
-          status: 404,
-        },
-      );
+      return new Response("Transcript not found.", {
+        status: 404,
+      });
     }
 
     // =========================================
-    // DELETE FROM DATABASE
+    // CHECK PNG URL
     // =========================================
 
-    await prisma.transcript.delete({
-      where: {
-        referenceId,
+    if (!transcript.pngUrl) {
+      return new Response("Transcript image has not been generated yet.", {
+        status: 404,
+      });
+    }
+
+    // =========================================
+    // RETURN HTML PAGE
+    // =========================================
+
+    const html = `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <meta
+            name="viewport"
+            content="width=device-width, initial-scale=1.0"
+          />
+
+          <title>Student Transcript</title>
+
+          <style>
+            * {
+              box-sizing: border-box;
+            }
+
+            html,
+            body {
+              margin: 0;
+              padding: 0;
+              min-height: 100%;
+              background: #f3f4f6;
+            }
+
+            body {
+              display: flex;
+              justify-content: center;
+              align-items: flex-start;
+              padding: 30px;
+            }
+
+            .container {
+              width: 891px;
+              height: 646px;
+              background: white;
+              display: flex;
+              justify-content: center;
+              align-items: center;
+              overflow: hidden;
+              box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+            }
+
+            .container img {
+              width: 100%;
+              height: 100%;
+              object-fit: contain;
+              display: block;
+            }
+
+            .error {
+              padding: 30px;
+              text-align: center;
+              font-family: Arial, sans-serif;
+              color: #555;
+            }
+
+            @media (max-width: 940px) {
+              body {
+                padding: 10px;
+              }
+
+              .container {
+                width: 100%;
+                height: auto;
+                aspect-ratio: 891 / 646;
+              }
+            }
+          </style>
+        </head>
+
+        <body>
+          <div class="container">
+            <img
+              src="/api/transcripts/${reference}/image"
+              alt="Student Transcript"
+            />
+          </div>
+        </body>
+      </html>
+    `;
+
+    return new Response(html, {
+      status: 200,
+      headers: {
+        "Content-Type": "text/html; charset=utf-8",
+        "Cache-Control": "no-store",
       },
-    });
-
-    // =========================================
-    // DELETE GENERATED FILES FROM VERCEL BLOB
-    // =========================================
-
-    if (transcript.pngUrl) {
-      await del(transcript.pngUrl);
-    }
-
-    if (transcript.pdfUrl) {
-      await del(transcript.pdfUrl);
-    }
-
-    console.log("TRANSCRIPT DELETED:", referenceId);
-
-    // =========================================
-    // SUCCESS
-    // =========================================
-
-    return Response.json({
-      success: true,
     });
   } catch (error) {
-    console.error("Transcript deletion failed:", error);
+    console.error("Public transcript page failed:", error);
 
-    return Response.json(
-      {
-        error: "Failed to delete transcript.",
-      },
-      {
-        status: 500,
-      },
-    );
+    return new Response("Failed to load transcript.", {
+      status: 500,
+    });
   }
 }
