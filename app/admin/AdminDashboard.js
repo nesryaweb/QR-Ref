@@ -10,6 +10,7 @@ import {
 } from "@/lib/transcript";
 import TranscriptPreview from "./components/TranscriptPreview";
 import GradeEditor from "./components/GradeEditor";
+import validateTranscript from "@/lib/validateTranscript";
 export default function AdminPage() {
   const [transcript, setTranscript] = useState(createEmptyTranscript());
   const [photo, setPhoto] = useState(null);
@@ -107,131 +108,6 @@ export default function AdminPage() {
           : grade,
       ),
     }));
-  }
-
-  function validateTranscript() {
-    const errors = {};
-
-    // =========================
-    // STUDENT INFORMATION
-    // =========================
-
-    if (!transcript.studentName?.trim()) {
-      errors.studentName = "Student name is required.";
-    }
-
-    if (!transcript.studentId?.trim()) {
-      errors.studentId = "Student ID is required.";
-    }
-
-    if (!transcript.age?.toString().trim()) {
-      errors.age = "Age is required.";
-    } else if (Number(transcript.age) <= 0) {
-      errors.age = "Age must be greater than 0.";
-    }
-
-    if (!transcript.gender?.trim()) {
-      errors.gender = "Please select the student's gender.";
-    }
-
-    if (!transcript.stream?.trim()) {
-      errors.stream = "Stream is required.";
-    }
-
-    if (!photo) {
-      errors.photo = "Student photo is required.";
-    }
-
-    // =========================
-    // GRADES
-    // =========================
-
-    if (!transcript.grades?.length) {
-      errors.grades = "Please add at least one grade.";
-    } else {
-      transcript.grades.forEach((grade, gradeIndex) => {
-        const gradeErrors = {};
-
-        if (!grade.gradeName?.trim()) {
-          gradeErrors.gradeName = "Grade is required.";
-        }
-
-        if (!grade.academicYear?.trim()) {
-          gradeErrors.academicYear = "Academic year is required.";
-        }
-
-        if (!grade.conduct?.trim()) {
-          gradeErrors.conduct = "Conduct / Work Ethic is required.";
-        }
-
-        if (
-          grade.absence === undefined ||
-          grade.absence === null ||
-          grade.absence === ""
-        ) {
-          gradeErrors.absence = "Absences are required.";
-        }
-
-        if (!grade.firstSemesterRank?.trim()) {
-          gradeErrors.firstSemesterRank = "1st semester rank is required.";
-        }
-
-        if (!grade.secondSemesterRank?.trim()) {
-          gradeErrors.secondSemesterRank = "2nd semester rank is required.";
-        }
-
-        // =========================
-        // SUBJECTS
-        // =========================
-
-        if (!grade.subjects?.length) {
-          gradeErrors.subjects = "Please add at least one subject.";
-        } else {
-          const subjectErrors = {};
-
-          grade.subjects.forEach((subject, subjectIndex) => {
-            const currentSubjectErrors = {};
-
-            if (!subject.name?.trim()) {
-              currentSubjectErrors.name = "Subject name is required.";
-            }
-
-            if (
-              subject.firstSemester === undefined ||
-              subject.firstSemester === null ||
-              subject.firstSemester === ""
-            ) {
-              currentSubjectErrors.firstSemester =
-                "1st semester mark is required.";
-            }
-
-            if (
-              subject.secondSemester === undefined ||
-              subject.secondSemester === null ||
-              subject.secondSemester === ""
-            ) {
-              currentSubjectErrors.secondSemester =
-                "2nd semester mark is required.";
-            }
-
-            if (Object.keys(currentSubjectErrors).length > 0) {
-              subjectErrors[subjectIndex] = currentSubjectErrors;
-            }
-          });
-
-          if (Object.keys(subjectErrors).length > 0) {
-            gradeErrors.subjects = subjectErrors;
-          }
-        }
-
-        if (Object.keys(gradeErrors).length > 0) {
-          errors.grades = errors.grades || {};
-          errors.grades[gradeIndex] = gradeErrors;
-        }
-      });
-    }
-
-    return errors;
   }
 
   async function compressPhoto(file) {
@@ -792,9 +668,7 @@ function TranscriptRow({ transcript, onDelete }) {
 
       {/* INFORMATION */}
       <div className="min-w-0 flex-1">
-        <p className="truncate font-semibold">
-          {transcript.studentName}
-        </p>
+        <p className="truncate font-semibold">{transcript.studentName}</p>
 
         <p className="mt-1 text-sm text-gray-500">
           Reference: {transcript.referenceId}
@@ -807,7 +681,6 @@ function TranscriptRow({ transcript, onDelete }) {
 
       {/* ACTIONS */}
       <div className="flex flex-wrap gap-2">
-
         {/* VIEW */}
         <a
           href={`/ref/${transcript.referenceId}`}
@@ -844,7 +717,6 @@ function TranscriptRow({ transcript, onDelete }) {
         >
           Delete
         </button>
-
       </div>
     </div>
   );
