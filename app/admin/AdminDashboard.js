@@ -175,8 +175,7 @@ export default function AdminPage() {
     setLoadingMessage("Saving transcript...");
 
     try {
-      const validationErrors = validateTranscript();
-
+      const validationErrors = validateTranscript(transcript, photo);
       setFieldErrors(validationErrors);
 
       if (Object.keys(validationErrors).length > 0) {
