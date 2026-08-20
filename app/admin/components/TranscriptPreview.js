@@ -14,21 +14,51 @@ export default function TranscriptPreview({ transcript }) {
   // These extra grades are ONLY for the preview.
   // They are not added to transcript.grades and will not be saved.
   //
-  const displayGrades = [...grades];
+  // =========================================================
+  // DISPLAY AT LEAST 4 GRADES
+  // =========================================================
+  //
+  // Grades are aligned from RIGHT to LEFT.
+  //
+  // 1 grade:
+  // - | - | - | Grade 1
+  //
+  // 2 grades:
+  // - | - | Grade 1 | Grade 2
+  //
+  // 3 grades:
+  // - | Grade 1 | Grade 2 | Grade 3
+  //
+  // 4 grades:
+  // Grade 1 | Grade 2 | Grade 3 | Grade 4
+  //
+  // Blank grades are ONLY for the preview.
+  // They are not added to transcript.grades and will not be saved.
+  //
 
-  while (displayGrades.length < 4) {
-    displayGrades.push({
-      isBlankGrade: true,
-      gradeName: "",
-      academicYear: "",
-      studentCount: "",
-      firstSemesterRank: "",
-      secondSemesterRank: "",
-      conduct: "",
-      absence: "",
-      subjects: [],
-    });
-  }
+  const blankGrade = {
+    isBlankGrade: true,
+    gradeName: "",
+    academicYear: "",
+    studentCount: "",
+    firstSemesterRank: "",
+    secondSemesterRank: "",
+    conduct: "",
+    absence: "",
+    subjects: [],
+  };
+
+  const displayGrades = [
+    ...Array.from(
+      {
+        length: Math.max(0, 4 - grades.length),
+      },
+      () => ({
+        ...blankGrade,
+      }),
+    ),
+    ...grades,
+  ];
 
   // =========================================================
   // COLLECT ALL UNIQUE SUBJECTS
