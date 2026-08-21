@@ -98,7 +98,7 @@ export default function TranscriptPreview({ transcript }) {
       ===================================================== */}
 
       <div className="overflow-x-auto">
-        <div className="mx-auto w-full bg-white p-6 text-black">
+        <div className="mx-auto w-222.75 min-w-222.75  bg-white p-6 text-black">
           {/* =================================================
               TOP HEADER
           ================================================= */}
@@ -184,7 +184,7 @@ export default function TranscriptPreview({ transcript }) {
                 Add grades and subjects to display the transcript.
               </div>
             ) : (
-              <table className="w-full table-fixed border-collapse text-[10px]">
+              <table className="min-w-275 w-full table-fixed border-collapse text-[10px]">
                 {/* =================================================
                     TABLE HEADER
                 ================================================= */}
@@ -262,19 +262,19 @@ export default function TranscriptPreview({ transcript }) {
 
                     {displayGrades.map((grade, index) => (
                       <Fragment key={index}>
-                        <th className="border border-black px-1 py-1 text-center font-normal">
+                        <th className="w-11.25 min-w-11.25 border border-black px-1 py-1 text-center font-normal">
                           1st
                           <br />
                           Sem
                         </th>
 
-                        <th className="border border-black px-1 py-1 text-center font-normal">
+                        <th className="w-11.25 min-w-11.25 border border-black px-1 py-1 text-center font-normal">
                           2nd
                           <br />
                           Sem
                         </th>
 
-                        <th className="border border-black px-1 py-1 text-center font-normal">
+                        <th className="w-11.25 min-w-11.25 border border-black px-1 py-1 text-center font-normal">
                           Average
                         </th>
                       </Fragment>
@@ -295,7 +295,7 @@ export default function TranscriptPreview({ transcript }) {
                     <tr key={subjectName}>
                       {/* SUBJECT NAME */}
 
-                      <td className="border border-black px-1 py-[2px] font-medium">
+                      <td className="border border-black px-1 py-0.5 font-medium">
                         {subjectName}
                       </td>
 
@@ -317,19 +317,19 @@ export default function TranscriptPreview({ transcript }) {
                           <Fragment key={gradeIndex}>
                             {/* FIRST SEMESTER */}
 
-                            <td className="border border-black px-1 py-[2px] text-center">
+                            <td className="w-11.25 min-w-11.25 border border-black px-1 py-0.5 text-center">
                               {subject?.firstSemester || "-"}
                             </td>
 
                             {/* SECOND SEMESTER */}
 
-                            <td className="border border-black px-1 py-[2px] text-center">
+                            <td className="w-11.25 min-w-11.25 border border-black px-1 py-0.5 text-center">
                               {subject?.secondSemester || "-"}
                             </td>
 
                             {/* AVERAGE */}
 
-                            <td className="border border-black px-1 py-[2px] text-center">
+                            <td className="w-11.25 min-w-11.25 border border-black px-1 py-0.5 text-center">
                               {average === "" ? "-" : average}
                             </td>
                           </Fragment>
@@ -343,7 +343,7 @@ export default function TranscriptPreview({ transcript }) {
                   ================================================= */}
 
                   <tr>
-                    <td className="border border-black px-1 py-[2px] font-bold">
+                    <td className="border border-black px-1 py-0.5 font-bold">
                       Total
                     </td>
 
@@ -385,7 +385,7 @@ export default function TranscriptPreview({ transcript }) {
                   ================================================= */}
 
                   <tr>
-                    <td className="border border-black px-1 py-[2px] font-bold">
+                    <td className="border border-black px-1 py-0.5 font-bold">
                       Average
                     </td>
 
@@ -427,7 +427,7 @@ export default function TranscriptPreview({ transcript }) {
                   ================================================= */}
 
                   <tr>
-                    <td className="border border-black px-1 py-[2px] font-bold">
+                    <td className="border border-black px-1 py-0.5 font-bold">
                       Rank
                     </td>
 
@@ -482,7 +482,7 @@ export default function TranscriptPreview({ transcript }) {
                   ================================================= */}
 
                   <tr>
-                    <td className="border border-black px-1 py-[2px] font-bold">
+                    <td className="border border-black px-1 py-0.5 font-bold">
                       Conduct / Work Ethic
                     </td>
 
@@ -502,7 +502,7 @@ export default function TranscriptPreview({ transcript }) {
                   ================================================= */}
 
                   <tr>
-                    <td className="border border-black px-1 py-[2px] font-bold">
+                    <td className="border border-black px-1 py-0.5 font-bold">
                       Absences
                     </td>
 
